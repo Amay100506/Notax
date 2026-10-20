@@ -56,24 +56,25 @@ NotifyIQ is a **decision-support tool**: it never automatically replies, dismiss
 
 ```mermaid
 flowchart LR
-    A[Android Companion<br/>Kotlin / NotificationListener] -->|JSON Export / Sync| B[Ingestion & Validation<br/>Pydantic]
+    A[Android Kotlin App<br/>NotificationListenerService] -->|Local Queue| Q[Persistent Event Queue<br/>Thread-Safe JSON Buffer]
+    Q -->|Auth HTTP + Backoff| B[FastAPI Backend<br/>Ingestion & Validation]
     B --> C[Privacy Redaction<br/>Masking Sensitive Patterns]
     C --> D[AI Intelligence Engine<br/>TF-IDF + LogReg + Rules]
     D --> E[Shopping Intelligence<br/>Deals + Coupons + Price Tracking]
     E --> F[(SQLite Database<br/>Local Persistence)]
-    F --> G[Streamlit Dashboard<br/>Smart Inbox & Analytics]
+    F --> G[Streamlit Dashboard<br/>Smart Inbox & Live Pulse]
     F --> H[FastAPI Local Service<br/>REST + WebSocket Gateway]
     H --> I[Mobile PWA Companion<br/>Real-Time Live Stream]
 ```
 
 ### Technology Stack
-- **Android App**: Kotlin, Android SDK 34, AndroidX, Material 3.
+- **Android App**: Kotlin, Coroutines (`Dispatchers.IO`), Android SDK 34, AndroidX, Material 3, `NotificationListenerService`, persistent FIFO event queue.
 - **Python Backend**: Python 3.11 / 3.14 compatible.
 - **Machine Learning**: `scikit-learn` (TF-IDF vectorizer + Logistic Regression).
 - **Storage**: SQLite 3 with foreign keys, indexes, and schema migration tracking.
 - **API & Streaming**: FastAPI, Uvicorn, WebSockets, Pydantic v2.
 - **Dashboard**: Streamlit, Plotly, Pandas, NumPy.
-- **Testing**: `pytest`, `TestClient` (60+ automated tests).
+- **Testing**: `pytest`, `TestClient` (84+ automated tests across AI pipeline, shopping intelligence, database, API, and real-time forwarding).
 
 ---
 
@@ -178,19 +179,20 @@ NotifyIQ/
 │   │   ├── __init__.py
 │   │   ├── configuration.py           # Configuration management
 │   │   └── logging_config.py          # Privacy-preserving logging
-│   └── tests/                         # Full automated test suite (75+ tests)
+│   └── tests/                         # Full automated test suite (84+ tests)
 │       ├── test_action_extractor.py
 │       ├── test_api.py
 │       ├── test_classifier.py
 │       ├── test_database.py
 │       ├── test_deadlines.py
 │       ├── test_duplicates.py
+│       ├── test_forwarding.py         # Real-time forwarding, auth, retries, and idempotency
 │       ├── test_import.py
-│       ├── test_notification_service.py
+│       ├── test_notification_service.py # Smart inbox, quiet hours, retention & exclusions
 │       ├── test_pipeline.py
 │       ├── test_preprocessing.py
 │       ├── test_priority.py
-│       └── test_shopping.py
+│       └── test_shopping.py           # Price extraction, deal scoring, coupons & history
 │
 ├── extension/                         # BuyHatke-Style Chrome/Edge Browser Extension (Manifest V3)
 │   ├── manifest.json                  # Manifest V3 specification
@@ -202,15 +204,6 @@ NotifyIQ/
 │   ├── popup.css                      # Popup UI styling
 │   ├── icons/                         # Extension icons (16, 48, 128)
 │   └── README.md                      # Extension installation guide
-│       ├── test_preprocessing.py
-│       ├── test_classifier.py
-│       ├── test_deadlines.py
-│       ├── test_priority.py
-│       ├── test_duplicates.py
-│       ├── test_pipeline.py
-│       ├── test_notification_service.py # Smart inbox, quiet hours, retention & exclusions
-│       ├── test_shopping.py           # Price extraction, deal scoring, coupons & history
-│       └── test_api.py                # Integration tests for REST endpoints
 │
 ├── dashboard/
 │   ├── app.py                         # Streamlit multi-page dashboard
@@ -222,15 +215,20 @@ NotifyIQ/
 │   ├── build.gradle.kts
 │   └── app/
 │       ├── build.gradle.kts
-│       └── src/main/
-│           ├── AndroidManifest.xml
-│           ├── java/org/notifyiq/app/
-│           │   ├── MainActivity.kt
-│           │   ├── NotificationCaptureService.kt
-│           │   ├── NotificationEvent.kt
-│           │   ├── JsonExporter.kt
-│           │   └── SettingsManager.kt
-│           └── res/
+│       ├── src/main/
+│       │   ├── AndroidManifest.xml
+│       │   ├── java/org/notifyiq/app/
+│       │   │   ├── MainActivity.kt
+│       │   │   ├── NotificationCaptureService.kt
+│       │   │   ├── NotificationForwarder.kt    # Authenticated HTTP forwarding & backoff
+│       │   │   ├── PersistentEventQueue.kt     # Thread-safe persistent JSON event queue
+│       │   │   ├── NotificationEvent.kt
+│       │   │   ├── JsonExporter.kt
+│       │   │   └── SettingsManager.kt
+│       │   └── res/
+│       └── src/test/java/org/notifyiq/app/
+│           ├── NotificationEventTest.kt
+│           └── PersistentEventQueueTest.kt
 │
 ├── data/
 │   ├── sample_notifications.json      # 50 Android-compatible notification events

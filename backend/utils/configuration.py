@@ -3,6 +3,7 @@ Configuration management for NotifyIQ.
 Reads environment variables with sensible local defaults.
 """
 
+from typing import Optional
 from pathlib import Path
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from pydantic import Field
@@ -52,9 +53,22 @@ class Settings(BaseSettings):
     # Privacy & Redaction
     redaction_enabled: bool = Field(default=True, alias="NOTIFYIQ_REDACTION_ENABLED")
     retention_days_default: int = 30
+
+    # Local Network Forwarding & Authentication
+    api_key: Optional[str] = Field(default=None, alias="NOTIFYIQ_API_KEY")
+    lan_mode: bool = Field(default=False, alias="NOTIFYIQ_LAN_MODE")
+    max_batch_size: int = Field(default=100, alias="NOTIFYIQ_MAX_BATCH_SIZE")
+    max_request_bytes: int = Field(default=1_000_000, alias="NOTIFYIQ_MAX_REQUEST_BYTES")
     
     # Logging
     log_level: str = Field(default="INFO", alias="NOTIFYIQ_LOG_LEVEL")
+
+    @property
+    def bind_host(self) -> str:
+        """Returns 0.0.0.0 only when LAN mode is enabled, otherwise preserves localhost."""
+        if self.lan_mode and self.host == "127.0.0.1":
+            return "0.0.0.0"
+        return self.host
 
     model_config = SettingsConfigDict(
         env_file=str(BASE_DIR / ".env"),

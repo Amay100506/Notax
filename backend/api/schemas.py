@@ -2,8 +2,9 @@
 Pydantic API request and response schemas for NotifyIQ.
 """
 
+from datetime import datetime
 from typing import Any, Optional
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 
 class HealthResponse(BaseModel):
@@ -117,3 +118,61 @@ class PurgeResponse(BaseModel):
     deleted_actions: int
     deleted_feedback: int
     deleted_groups: int
+
+
+class ForwardNotificationItem(BaseModel):
+    schema_version: int = Field(default=1, ge=1, le=1)
+    event_id: str = Field(min_length=1, max_length=128)
+    package_name: str = Field(min_length=1, max_length=256)
+    title: Optional[str] = Field(default="", max_length=512)
+    text: Optional[str] = Field(default="", max_length=4096)
+    posted_at: str
+    event_type: str = Field(default="posted")
+
+    @field_validator("posted_at")
+    @classmethod
+    def validate_posted_at(cls, v: str) -> str:
+        if not v or not isinstance(v, str):
+            raise ValueError("posted_at must be a non-empty ISO 8601 string")
+        try:
+            # Handle standard ISO formats, including Z suffix
+            normalized = v.replace("Z", "+00:00")
+            datetime.fromisoformat(normalized)
+        except Exception as e:
+            raise ValueError(f"Invalid ISO 8601 timestamp format: {e}")
+        return v
+
+    model_config = {"extra": "ignore"}
+
+
+class ForwardNotificationBatch(BaseModel):
+    notifications: list[ForwardNotificationItem] = Field(default_factory=list)
+    client_timestamp: Optional[str] = None
+    client_version: Optional[str] = None
+
+
+class ForwardingAckResponse(BaseModel):
+    status: str = "ok"
+    accepted_count: int
+    duplicate_count: int
+    acknowledged_event_ids: list[str]
+    server_timestamp: str
+
+
+class ForwardingStatusResponse(BaseModel):
+    status: str = "online"
+    authenticated: bool
+    version: str = "1.0.0"
+    lan_mode: bool
+    server_time: str
+    lan_ip: str
+    port: int
+
+
+class ForwardAuthInfoResponse(BaseModel):
+    lan_ip: str
+    port: int
+    api_key: str
+    pairing_url: str
+    lan_mode: bool
+

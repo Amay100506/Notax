@@ -7,4 +7,8 @@
     <string name="btn_clear_data">Clear Local History</string>
     <string name="status_granted">Notification Access: GRANTED</string>
     <string name="status_not_granted">Notification Access: NOT GRANTED (Tap below)</string>
+    <string name="btn_test_connection">Test Server Connection</string>
+    <string name="btn_flush_queue">Flush Queue Now</string>
+    <string name="btn_clear_queue">Delete Queued Data</string>
+    <string name="btn_save_settings">Save Settings</string>
 </resources>

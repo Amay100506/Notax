@@ -67,9 +67,15 @@ class NotificationCaptureService : NotificationListenerService() {
             eventType = "posted"
         )
 
-        // Save locally to JSON buffer
+        // Save locally to JSON buffer as persistent fallback
         JsonExporter.saveEvent(applicationContext, event)
         Log.i(TAG, "Captured notification event ${event.eventId} from package $packageName")
+
+        // If real-time forwarding is enabled, enqueue into persistent queue and trigger network flush
+        if (settingsManager.isForwardingEnabled) {
+            PersistentEventQueue.enqueue(applicationContext, event)
+            NotificationForwarder.triggerFlush(applicationContext)
+        }
     }
 
     override fun onNotificationRemoved(sbn: StatusBarNotification?) {

@@ -119,6 +119,57 @@ def main():
     selected_page = st.sidebar.radio("Navigation", pages, index=0)
 
     st.sidebar.divider()
+    st.sidebar.subheader("⚡ Live Ingestion & Sync")
+
+    # Auto-Refresh selector
+    refresh_option = st.sidebar.selectbox(
+        "Auto-Refresh Rate",
+        ["Off", "3 seconds", "5 seconds", "10 seconds", "30 seconds"],
+        index=2,
+        help="Periodically updates notification counts and smart inbox without restarting the app.",
+    )
+    if st.sidebar.button("🔄 Refresh Data Now"):
+        st.rerun()
+
+    # Server Status Check
+    server_online = False
+    try:
+        import urllib.request
+        with urllib.request.urlopen("http://127.0.0.1:8000/forward/status", timeout=1) as resp:
+            if resp.status == 200:
+                server_online = True
+    except Exception:
+        pass
+
+    if server_online:
+        st.sidebar.success("🟢 Server: Online (Port 8000)")
+    else:
+        st.sidebar.warning("🟡 Server: Offline (Start FastAPI)")
+
+    # Android Ingestion Status
+    latest_ingest = repo.get_setting("latest_forward_ingestion_at")
+    total_forwarded = repo.get_setting("total_forwarded_count") or "0"
+
+    if latest_ingest:
+        try:
+            dt = datetime.fromisoformat(latest_ingest.replace("Z", "+00:00"))
+            delta_sec = (datetime.now(timezone.utc) - dt).total_seconds()
+            if delta_sec < 60:
+                st.sidebar.success(f"🟢 Android: Active ({int(delta_sec)}s ago)")
+            elif delta_sec < 3600:
+                st.sidebar.info(f"🟡 Android: Idle ({int(delta_sec // 60)}m ago)")
+            else:
+                st.sidebar.info(f"⚪ Last Ingestion: {dt.strftime('%H:%M:%S UTC')}")
+        except Exception:
+            st.sidebar.info(f"⚪ Last Ingest: {latest_ingest[:19]}")
+    else:
+        st.sidebar.caption("⚪ Android: Awaiting connection")
+
+    summary_counts = repo.get_analytics_summary()
+    st.sidebar.caption(f"📱 Forwarded Events: **{total_forwarded}**")
+    st.sidebar.caption(f"🧠 Processed in DB: **{summary_counts['total_notifications']}**")
+
+    st.sidebar.divider()
     st.sidebar.caption("🔒 **Privacy Guarantee**: All processing and SQLite persistence remain strictly local on your machine. No notification text is transmitted to external clouds.")
 
     # -------------------------------------------------------------
@@ -127,6 +178,19 @@ def main():
     if selected_page == "Overview":
         st.title("System Overview & Live Pulse")
         st.markdown("Real-time intelligence dashboard calculated from your captured notifications.")
+
+        # Live Real-Time Ingestion Pulse Banner
+        b1, b2, b3 = st.columns([2.5, 1, 1])
+        with b1:
+            if latest_ingest:
+                st.caption(f"⚡ **Live Sync Active** • Last Android event: `{latest_ingest[:19].replace('T', ' ')} UTC` • Forwarded: **{total_forwarded}**")
+            else:
+                st.caption(f"⚡ **Live Sync Ready** • Awaiting Android forwarding • Total Processed: **{summary_counts['total_notifications']}**")
+        with b2:
+            st.caption(f"⏱️ Refresh: **{refresh_option}**")
+        with b3:
+            if st.button("🔄 Refresh Data", key="sync_pulse_overview"):
+                st.rerun()
 
         summary = repo.get_analytics_summary()
         if summary["total_notifications"] == 0:
@@ -236,6 +300,19 @@ def main():
     elif selected_page == "Smart Inbox":
         st.title("Smart Inbox")
         st.markdown("Searchable, explainable stream of incoming notifications with comprehensive filters.")
+
+        # Live Real-Time Ingestion Pulse Banner
+        ib1, ib2, ib3 = st.columns([2.5, 1, 1])
+        with ib1:
+            if latest_ingest:
+                st.caption(f"⚡ **Real-Time Stream Active** • Latest: `{latest_ingest[:19].replace('T', ' ')} UTC` • Forwarded: **{total_forwarded}**")
+            else:
+                st.caption(f"⚡ **Stream Ready** • Awaiting Android companion • Total Notifications: **{summary_counts['total_notifications']}**")
+        with ib2:
+            st.caption(f"⏱️ Auto-Refresh: **{refresh_option}**")
+        with ib3:
+            if st.button("🔄 Sync Stream", key="sync_pulse_inbox"):
+                st.rerun()
 
         # Enhanced Filters Bar — Row 1
         f1, f2, f3, f4 = st.columns([2, 1, 1, 1])
@@ -985,15 +1062,16 @@ def main():
     # PAGE 9: MOBILE APP & REAL-TIME SYNC
     # -------------------------------------------------------------
     elif selected_page == "📱 Mobile App & Live Sync":
-        st.title("📱 Real-Time Mobile Companion App")
+        st.title("📱 Real-Time Mobile Companion & Notification Forwarding")
         st.markdown(
-            "Download and install NotifyIQ onto your mobile device as a Progressive Web App (PWA) "
-            "with live WebSocket push notifications and local offline caching."
+            "Stream Android notifications directly to NotifyIQ in real-time over your local network, "
+            "or install the companion web app on any mobile device."
         )
 
         import io
         import socket
         import qrcode
+        from backend.api.routes import get_or_create_api_key
 
         def get_lan_ip() -> str:
             try:
@@ -1006,67 +1084,200 @@ def main():
                 return "127.0.0.1"
 
         lan_ip = get_lan_ip()
-        mobile_url = f"http://{lan_ip}:8000/mobile"
+        api_key = get_or_create_api_key(repo)
 
-        col_qr, col_info = st.columns([1, 1.4])
-        with col_qr:
-            st.subheader("Scan with Your Phone Camera")
-            qr = qrcode.QRCode(box_size=8, border=2)
-            qr.add_data(mobile_url)
-            qr.make(fit=True)
-            img = qr.make_image(fill_color="#4F46E5", back_color="white")
-            buf = io.BytesIO()
-            img.save(buf, format="PNG")
-            st.image(buf.getvalue(), caption=f"Scan to open on phone: {mobile_url}", width=260)
+        # Tab navigation for Companion App and PWA Web App
+        tab_android, tab_pwa, tab_test = st.tabs([
+            "🤖 Android Real-Time Forwarding",
+            "📱 Installable Mobile Web App",
+            "⚡ Live Test Ingestion",
+        ])
 
-        with col_info:
-            st.subheader("How to Install as a Mobile App")
+        # ---------------------------------------------------------
+        # TAB 1: ANDROID REAL-TIME FORWARDING
+        # ---------------------------------------------------------
+        with tab_android:
+            st.subheader("🤖 Android Kotlin Notification Forwarder")
             st.markdown(
-                f"""
-                1. Make sure your phone is connected to the **same Wi-Fi network**.
-                2. Scan the QR code or open:  
-                   👉 **[{mobile_url}]({mobile_url})**
-                3. **Install to Home Screen**:
-                   - **Android (Chrome)**: Tap the banner **"Install Now"** or tap `⋮` (menu) → **"Install App"** / **"Add to Home Screen"**.
-                   - **iOS (Safari)**: Tap the Share icon → **"Add to Home Screen"**.
-                4. The NotifyIQ app icon will appear directly on your phone's home screen and launch in full-screen native mode!
-                """
+                "NotifyIQ's Android companion app captures notification-posted events via `NotificationListenerService`, "
+                "buffers them in a local persistent queue, and securely forwards them to this laptop via authenticated HTTP requests."
             )
+
+            # Live Diagnostics Panel
+            st.markdown("#### 📡 Real-Time Connection & Ingestion Diagnostics")
+            d1, d2, d3, d4 = st.columns(4)
+
+            # Check server connectivity
+            server_live = False
+            try:
+                import urllib.request
+                with urllib.request.urlopen("http://127.0.0.1:8000/forward/status", timeout=1) as resp:
+                    if resp.status == 200:
+                        server_live = True
+            except Exception:
+                pass
+
+            latest_ingest_time = repo.get_setting("latest_forward_ingestion_at")
+            total_forwarded_count = repo.get_setting("total_forwarded_count") or "0"
+            total_db_count = repo.get_analytics_summary()["total_notifications"]
+
+            with d1:
+                if server_live:
+                    st.metric("FastAPI Server", "🟢 Online", f"Port {settings.port}")
+                else:
+                    st.metric("FastAPI Server", "🔴 Offline", "Start backend server")
+
+            with d2:
+                if latest_ingest_time:
+                    try:
+                        dt = datetime.fromisoformat(latest_ingest_time.replace("Z", "+00:00"))
+                        delta = (datetime.now(timezone.utc) - dt).total_seconds()
+                        if delta < 120:
+                            st.metric("Android Capture", "🟢 Active", f"{int(delta)}s ago")
+                        elif delta < 3600:
+                            st.metric("Android Capture", "🟡 Idle", f"{int(delta // 60)}m ago")
+                        else:
+                            st.metric("Android Capture", "⚪ Connected", dt.strftime("%H:%M UTC"))
+                    except Exception:
+                        st.metric("Android Capture", "⚪ Active", latest_ingest_time[:19])
+                else:
+                    st.metric("Android Capture", "⚪ Awaiting", "No events yet")
+
+            with d3:
+                st.metric("Forwarded Events", total_forwarded_count, "From Android Queue")
+
+            with d4:
+                st.metric("Processed in DB", str(total_db_count), "SQLite Stored")
 
             st.divider()
 
-            # Live Test Trigger
-            st.subheader("⚡ Send Live Real-Time Test Alert to Phone")
-            st.caption("Broadcasts an urgent high-priority notification to all connected mobile devices in real time over WebSocket.")
+            # Pairing Credentials Card
+            col_cfg, col_qr_pair = st.columns([1.4, 1])
+
+            with col_cfg:
+                st.markdown("#### 🔑 Local Network Pairing Configuration")
+                st.caption("Enter these credentials in the Android NotifyIQ app:")
+
+                st.text_input("💻 Laptop IP Address", value=lan_ip, disabled=True)
+                st.text_input("🔌 API Port", value=str(settings.port), disabled=True)
+                
+                c_key, c_regen = st.columns([3, 1])
+                with c_key:
+                    st.text_input("🔐 API Authentication Key", value=api_key, type="password", disabled=True)
+                with c_regen:
+                    st.write("")
+                    st.write("")
+                    if st.button("🔄 Rotate Key"):
+                        import secrets
+                        new_sec = f"notifyiq_sec_{secrets.token_hex(16)}"
+                        repo.set_setting("api_key", new_sec)
+                        st.success("New API key generated!")
+                        st.rerun()
+
+                st.info(
+                    f"💡 **Direct Ingestion Endpoint**: `POST http://{lan_ip}:{settings.port}/notifications/forward`  \n"
+                    f"Header: `X-NotifyIQ-API-Key: {api_key}`"
+                )
+
+            with col_qr_pair:
+                st.markdown("#### 📷 Quick Scan Pairing")
+                pairing_uri = f"notifyiq://pair?host={lan_ip}&port={settings.port}&key={api_key}"
+                qr_pair = qrcode.QRCode(box_size=7, border=2)
+                qr_pair.add_data(pairing_uri)
+                qr_pair.make(fit=True)
+                img_pair = qr_pair.make_image(fill_color="#4F46E5", back_color="white")
+                buf_pair = io.BytesIO()
+                img_pair.save(buf_pair, format="PNG")
+                st.image(buf_pair.getvalue(), caption="Scan in Android App to pair instantly", width=220)
+
+            st.divider()
+
+            # Security and Network Considerations
+            st.markdown("#### 🛡️ Local Network Security & Limitations")
+            st.warning(
+                "**Local Network (LAN) Threat Model Notice**  \n"
+                "- **Trusted Home/Office Wi-Fi**: Plain HTTP with pre-shared API keys is lightweight and suitable for private local subnets.  \n"
+                "- **Public/Untrusted Networks (Airports, Coffee Shops)**: Plain HTTP can be sniffed by other devices on the same Wi-Fi. "
+                "Always run over a secure local VPN (such as WireGuard or Tailscale) or terminate TLS using a local reverse proxy (Caddy or Nginx) "
+                "when operating on public networks. NotifyIQ never exposes its API to the public internet by default."
+            )
+
+        # ---------------------------------------------------------
+        # TAB 2: PWA MOBILE WEB APP
+        # ---------------------------------------------------------
+        with tab_pwa:
+            st.subheader("📱 Installable Progressive Web App (PWA)")
+            st.markdown(
+                "NotifyIQ also includes an installable PWA web client with live WebSocket push alerts "
+                "and offline caching, accessible from any mobile browser."
+            )
+
+            mobile_url = f"http://{lan_ip}:8000/mobile"
+            col_pwa_qr, col_pwa_info = st.columns([1, 1.4])
+            with col_pwa_qr:
+                qr = qrcode.QRCode(box_size=8, border=2)
+                qr.add_data(mobile_url)
+                qr.make(fit=True)
+                img = qr.make_image(fill_color="#4F46E5", back_color="white")
+                buf = io.BytesIO()
+                img.save(buf, format="PNG")
+                st.image(buf.getvalue(), caption=f"Scan to open: {mobile_url}", width=240)
+
+            with col_pwa_info:
+                st.markdown(
+                    f"""
+                    1. Connect phone to the **same Wi-Fi network**.
+                    2. Open 👉 **[{mobile_url}]({mobile_url})**
+                    3. **Install to Home Screen**:
+                       - **Android (Chrome)**: Tap `⋮` → **Install App** / **Add to Home Screen**.
+                       - **iOS (Safari)**: Tap Share → **Add to Home Screen**.
+                    4. The app launches full-screen and connects live over WebSockets!
+                    """
+                )
+
+        # ---------------------------------------------------------
+        # TAB 3: LIVE TEST INGESTION
+        # ---------------------------------------------------------
+        with tab_test:
+            st.subheader("⚡ Send Real-Time Test Forwarding Event")
+            st.caption("Injects an authenticated event through the forwarding endpoint to test the AI pipeline, database persistence, and WebSocket broadcast live.")
 
             test_app = st.selectbox("Simulated App", ["Chase Banking", "Gmail Work", "Slack Team Sync", "Amazon Shopping"])
             test_title = st.text_input("Alert Title", value="Action Required: Confirm Identity Verification")
             test_text = st.text_input("Alert Body", value="Please complete your verification within 24 hours to prevent account freeze.")
 
-            if st.button("🚀 Push Live Alert to Mobile Now"):
+            if st.button("🚀 Forward Live Test Event Now"):
                 import requests
+                test_event_id = f"test-fwd-{int(datetime.now().timestamp())}"
+                pkg_name = "com.bank.secure" if "Bank" in test_app else ("com.google.android.gm" if "Gmail" in test_app else "com.slack")
                 try:
                     res = requests.post(
-                        "http://127.0.0.1:8000/notifications/process",
+                        "http://127.0.0.1:8000/notifications/forward",
+                        headers={"X-NotifyIQ-API-Key": api_key},
                         json={
-                            "notification": {
-                                "schema_version": 1,
-                                "event_id": f"live-test-{datetime.now().timestamp()}",
-                                "package_name": "com.bank.secure" if "Bank" in test_app else "com.work.app",
-                                "title": test_title,
-                                "text": test_text,
-                                "posted_at": datetime.now(timezone.utc).isoformat(),
-                                "event_type": "posted",
-                            },
-                            "persist": True,
+                            "notifications": [
+                                {
+                                    "schema_version": 1,
+                                    "event_id": test_event_id,
+                                    "package_name": pkg_name,
+                                    "title": test_title,
+                                    "text": test_text,
+                                    "posted_at": datetime.now(timezone.utc).isoformat(),
+                                    "event_type": "posted",
+                                }
+                            ],
+                            "client_version": "1.0.0",
                         },
                         timeout=5,
                     )
                     if res.status_code == 200:
-                        st.success("✅ Broadcasted live notification! Check your phone screen.")
+                        data = res.json()
+                        st.success(f"✅ Successfully ingested event `{test_event_id}`! (Accepted: {data['accepted_count']}, Duplicates: {data['duplicate_count']})")
+                        st.rerun()
                     else:
-                        st.error(f"Failed to broadcast: {res.text}")
+                        st.error(f"Failed to forward: {res.text}")
                 except Exception as ex:
+                    st.error(f"Error reaching API: {ex}")
                     st.error(f"Error reaching API gateway: {ex}")
 
 

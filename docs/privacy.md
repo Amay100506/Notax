@@ -98,22 +98,26 @@ NotifyIQ includes an offline shopping intelligence module (`backend/ai/shopping/
 
 ---
 
-## 8. LAN Synchronization & Mobile Companion Threat Model
+## 8. Real-Time LAN Forwarding & Threat Model
 
-NotifyIQ allows users to pair their mobile devices via local Wi-Fi to view notifications in real time using the Mobile Companion PWA:
+NotifyIQ allows users to pair their Android device via local Wi-Fi to forward notifications in real time to the laptop FastAPI backend:
 
-### Architecture
-- **Host Binding**: The FastAPI gateway binds locally (default `0.0.0.0:8000`) to enable local area network (LAN) access.
-- **Discovery & Pairing**: The desktop dashboard displays a QR code (`GET /mobile/qr`) encoding the host LAN URL (e.g., `http://192.168.1.100:8000/mobile`).
-- **Live Updates**: Communication occurs over WebSockets (`ws://<LAN_IP>:8000/ws/notifications`).
+### Architecture & Data Flow
+1. **NotificationListenerService**: Android OS delivers notification posted events after explicit user consent.
+2. **Pre-Transmission Filtering**: Excluded applications are immediately discarded *before* serialization or disk storage.
+3. **Local Persistent Queue (`PersistentEventQueue`)**: Unsent events are buffered in internal private app storage (`context.filesDir`).
+4. **Authenticated HTTP Ingestion**: Android sends POST requests to `/notifications/forward` with a pre-shared cryptographic API key (`X-NotifyIQ-API-Key`).
+5. **Idempotent Deduplication**: SQLite indexes prevent duplicate event submissions when client retries transient network interruptions.
+6. **Zero Raw Text Logging**: Neither Android nor FastAPI ever logs raw notification titles or text bodies; only event IDs, package names, timestamps, and error codes are recorded.
 
 ### Threat Model & Trust Assumptions
-1. **Trusted Network Boundary**:
-   - The system assumes deployment on a trusted private home or secure office Wi-Fi network with WPA2/WPA3 encryption.
-   - It is **not recommended** to expose the HTTP/WebSocket gateway directly on untrusted public Wi-Fi networks (such as coffee shops or airports) without a secure VPN or reverse proxy.
-2. **Zero Internet Exposure by Default**:
-   - NotifyIQ does not open UPnP router ports, nor does it register with public dynamic DNS or cloud tunneling services.
-   - The service is strictly unreachable from the public internet unless the user explicitly configures port forwarding or an external tunnel.
-3. **Eavesdropping Risks on Untrusted LANs**:
-   - On an insecure or compromised shared local network, unencrypted HTTP and WebSocket traffic could theoretically allow passive packet sniffing.
-   - For hostile or shared local networks, users should access NotifyIQ over a private VPN overlay (e.g., Tailscale, WireGuard) or front the service with a local TLS reverse proxy (e.g., Caddy, Nginx with mkcert).
+1. **Pre-Shared API Key Authentication**:
+   - Ingestion requires a cryptographically generated API key (`notifyiq_sec_<hex32>`) or environment variable.
+   - Keys are compared in constant time (`secrets.compare_digest`) to prevent timing side-channel attacks.
+2. **Trusted Network Boundary & Plain HTTP Limitations**:
+   - The system is designed for trusted private home or office Wi-Fi networks.
+   - **Plain HTTP Limitation**: On untrusted public Wi-Fi networks (coffee shops, airports, shared dorms), plain HTTP traffic can be intercepted by adversaries on the same wireless segment.
+   - **Security Recommendation**: On untrusted networks, users MUST operate through an encrypted private overlay network (e.g., Tailscale, WireGuard) or terminate TLS using a local reverse proxy (Caddy/Nginx) with HTTPS.
+3. **Zero Public Internet Exposure by Default**:
+   - The backend runs on `127.0.0.1` by default and only binds to local LAN interfaces when LAN mode is explicitly enabled by the user.
+   - No external cloud servers, UPnP ports, or third-party webhooks are utilized.

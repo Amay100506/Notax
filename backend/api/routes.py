@@ -4,10 +4,13 @@ Provides local endpoints for health checks, notification ingestion, AI processin
 actions management, active feedback, settings, and privacy purge.
 """
 
+from datetime import datetime, timezone
 from pathlib import Path
+import secrets
 from typing import Optional
-from fastapi import APIRouter, HTTPException, Query, WebSocket, WebSocketDisconnect, status
+from fastapi import APIRouter, Depends, Header, HTTPException, Query, Request, Security, WebSocket, WebSocketDisconnect, status
 from fastapi.responses import StreamingResponse, FileResponse
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 import io
 import socket
 import qrcode
@@ -17,6 +20,11 @@ from backend.api.schemas import (
     ActionStatusUpdate,
     FeedbackRequest,
     FeedbackResponse,
+    ForwardAuthInfoResponse,
+    ForwardNotificationBatch,
+    ForwardNotificationItem,
+    ForwardingAckResponse,
+    ForwardingStatusResponse,
     HealthResponse,
     NotificationImportBatch,
     NotificationImportItem,
@@ -74,6 +82,206 @@ class ConnectionManager:
 
 
 manager = ConnectionManager()
+
+security_bearer = HTTPBearer(auto_error=False)
+
+
+def get_or_create_api_key(repository: Repository) -> str:
+    """
+    Retrieves the local network API authentication key.
+    Checks environment/settings first, then database, or generates a secure random token.
+    Never hardcoded and safe across restarts.
+    """
+    if settings.api_key:
+        return settings.api_key
+    
+    stored = repository.get_setting("api_key")
+    if stored and stored.strip():
+        return stored.strip()
+    
+    new_key = f"notifyiq_sec_{secrets.token_hex(16)}"
+    repository.set_setting("api_key", new_key)
+    logger.info("Generated new secure NotifyIQ local network API key.")
+    return new_key
+
+
+def verify_api_key(
+    x_notifyiq_api_key: Optional[str] = Header(None, alias="X-NotifyIQ-API-Key"),
+    auth_credentials: Optional[HTTPAuthorizationCredentials] = Security(security_bearer),
+) -> str:
+    """
+    Verifies that the incoming request contains a valid API key.
+    Accepts X-NotifyIQ-API-Key header or Authorization: Bearer <key>.
+    Uses constant-time comparison to prevent timing attacks.
+    """
+    valid_key = get_or_create_api_key(repo)
+    provided_key = None
+    if x_notifyiq_api_key:
+        provided_key = x_notifyiq_api_key.strip()
+    elif auth_credentials and auth_credentials.credentials:
+        provided_key = auth_credentials.credentials.strip()
+
+    if not provided_key or not secrets.compare_digest(provided_key, valid_key):
+        logger.warning("Unauthorized forwarding attempt rejected (invalid or missing API key).")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Unauthorized: Invalid or missing NotifyIQ API key.",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    return provided_key
+
+
+@router.get("/forward/status", response_model=ForwardingStatusResponse)
+def get_forwarding_status(
+    x_notifyiq_api_key: Optional[str] = Header(None, alias="X-NotifyIQ-API-Key"),
+    auth_credentials: Optional[HTTPAuthorizationCredentials] = Security(security_bearer),
+):
+    """
+    Health and connection test endpoint for the Android client.
+    Allows Android client to test network connectivity and verify whether provided credentials are valid.
+    """
+    valid_key = get_or_create_api_key(repo)
+    provided_key = None
+    if x_notifyiq_api_key:
+        provided_key = x_notifyiq_api_key.strip()
+    elif auth_credentials and auth_credentials.credentials:
+        provided_key = auth_credentials.credentials.strip()
+
+    is_authenticated = bool(provided_key and secrets.compare_digest(provided_key, valid_key))
+    lan_ip = get_lan_ip()
+    server_time = datetime.now(timezone.utc).isoformat()
+
+    return ForwardingStatusResponse(
+        status="online",
+        authenticated=is_authenticated,
+        version="1.0.0",
+        lan_mode=settings.lan_mode,
+        server_time=server_time,
+        lan_ip=lan_ip,
+        port=settings.port,
+    )
+
+
+@router.get("/forward/auth-info", response_model=ForwardAuthInfoResponse)
+def get_forward_auth_info():
+    """
+    Returns local network pairing parameters and authentication key for companion app setup.
+    Only intended for display in the local dashboard and pairing screens.
+    """
+    lan_ip = get_lan_ip()
+    api_key = get_or_create_api_key(repo)
+    pairing_url = f"notifyiq://pair?host={lan_ip}&port={settings.port}&key={api_key}"
+    return ForwardAuthInfoResponse(
+        lan_ip=lan_ip,
+        port=settings.port,
+        api_key=api_key,
+        pairing_url=pairing_url,
+        lan_mode=settings.lan_mode,
+    )
+
+
+@router.post("/forward/auth-key/regenerate")
+def regenerate_forward_api_key():
+    """Regenerates a new secure API key, invalidating previous companion app credentials."""
+    new_key = f"notifyiq_sec_{secrets.token_hex(16)}"
+    repo.set_setting("api_key", new_key)
+    logger.info("Regenerated NotifyIQ local network API key.")
+    return {"status": "regenerated", "api_key": new_key}
+
+
+@router.post("/notifications/forward", response_model=ForwardingAckResponse)
+async def forward_notifications(
+    batch: ForwardNotificationBatch,
+    request: Request,
+    api_key: str = Depends(verify_api_key),
+):
+    """
+    Real-time authenticated notification ingestion endpoint for Android companion app.
+    Validates batch limits, verifies timestamps and schema, performs idempotent deduplication,
+    passes new notifications through the AI pipeline and shopping intelligence,
+    persists results to SQLite, broadcasts live via WebSockets, and returns acknowledgments.
+    Never logs raw notification content.
+    """
+    content_length = request.headers.get("content-length")
+    if content_length and int(content_length) > settings.max_request_bytes:
+        logger.warning(
+            "Rejected forwarding request: Content-Length %s exceeds limit %d",
+            content_length,
+            settings.max_request_bytes,
+        )
+        raise HTTPException(
+            status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
+            detail=f"Payload exceeds maximum allowed size of {settings.max_request_bytes} bytes.",
+        )
+
+    if len(batch.notifications) > settings.max_batch_size:
+        logger.warning(
+            "Rejected forwarding request: Batch size %d exceeds limit %d",
+            len(batch.notifications),
+            settings.max_batch_size,
+        )
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail=f"Batch size {len(batch.notifications)} exceeds maximum allowed limit {settings.max_batch_size}.",
+        )
+
+    accepted_count = 0
+    duplicate_count = 0
+    acknowledged_ids: list[str] = []
+
+    excluded_str = repo.get_setting("excluded_packages") or ""
+    excluded_set = {p.strip().lower() for p in excluded_str.split(",") if p.strip()}
+
+    for item in batch.notifications:
+        event_id = item.event_id
+        pkg = (item.package_name or "").lower()
+
+        # Check package exclusions
+        if pkg in excluded_set:
+            logger.info("Skipped excluded package notification for event %s", event_id)
+            acknowledged_ids.append(event_id)
+            continue
+
+        # Idempotency deduplication check against SQLite database
+        existing = repo.get_notification_by_event_id(event_id)
+        if existing:
+            duplicate_count += 1
+            acknowledged_ids.append(event_id)
+            logger.info("Idempotent skip for already processed event %s (pkg: %s)", event_id, item.package_name)
+            continue
+
+        # Process new event through AI pipeline and persist to SQLite
+        event_dict = item.model_dump()
+        try:
+            res = pipeline.process_notification(event_dict, persist=True)
+            try:
+                shopping_service.analyze_and_store(res)
+            except Exception as se:
+                logger.debug("Shopping analysis skipped for event %s: %s", event_id, se)
+
+            # Broadcast to live UI via WebSocket
+            await manager.broadcast({"type": "NEW_NOTIFICATION", "payload": res})
+
+            accepted_count += 1
+            acknowledged_ids.append(event_id)
+            logger.info("Accepted and processed forwarded event %s (pkg: %s)", event_id, item.package_name)
+        except Exception as e:
+            # Never expose notification content in error logs!
+            logger.error("Failed to process event %s (pkg: %s): %s", event_id, item.package_name, type(e).__name__)
+
+    server_now = datetime.now(timezone.utc).isoformat()
+    repo.set_setting("latest_forward_ingestion_at", server_now)
+    current_fwd_count = int(repo.get_setting("total_forwarded_count") or "0") + accepted_count
+    repo.set_setting("total_forwarded_count", str(current_fwd_count))
+
+    return ForwardingAckResponse(
+        status="ok",
+        accepted_count=accepted_count,
+        duplicate_count=duplicate_count,
+        acknowledged_event_ids=acknowledged_ids,
+        server_timestamp=server_now,
+    )
+
 
 
 @router.websocket("/ws/notifications")

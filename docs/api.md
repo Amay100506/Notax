@@ -50,6 +50,15 @@ The NotifyIQ backend exposes a local FastAPI service (default bound to `http://1
 | `GET` | `/shopping/coupons` | List harvested promo codes and discount vouchers |
 | `POST` | `/shopping/price-history` | Record a price observation point for tracking |
 
+### Real-Time LAN Forwarding (Android Companion)
+
+| Method | Endpoint | Description |
+|---|---|---|
+| `POST` | `/notifications/forward` | Authenticated real-time notification forwarding from Android queue |
+| `GET` | `/forward/status` | Connection and credential verification test endpoint |
+| `GET` | `/forward/auth-info` | Pairing parameters, current API key, and URI for Android companion |
+| `POST` | `/forward/auth-key/regenerate` | Rotates the local network API key |
+
 ### Mobile Gateway & Companion
 
 | Method | Endpoint | Description |
@@ -113,6 +122,67 @@ Process a single notification event synchronously with optional persistence:
     "event_type": "posted"
   },
   "persist": true
+}
+```
+
+### Authenticated Real-Time Forwarding
+`POST /notifications/forward`
+
+Pushes a batch of captured notifications from the Android `PersistentEventQueue` over the local network. Supports bounded exponential backoff retries and idempotent deduplication.
+
+Headers:
+- `X-NotifyIQ-API-Key`: Required pre-shared local network API key (or `Authorization: Bearer <key>`)
+- `Content-Type`: `application/json`
+
+Request Body:
+```json
+{
+  "notifications": [
+    {
+      "schema_version": 1,
+      "event_id": "b3e04e9c-1085-484c-83b5-df3a0c5c4f6b",
+      "package_name": "com.google.android.gm",
+      "title": "Project Review Due Today",
+      "text": "Please review the sprint pull requests before 5 PM.",
+      "posted_at": "2026-10-20T11:30:00Z",
+      "event_type": "posted"
+    }
+  ],
+  "client_version": "1.0.0"
+}
+```
+
+Response (`200 OK`):
+```json
+{
+  "status": "ok",
+  "accepted_count": 1,
+  "duplicate_count": 0,
+  "acknowledged_event_ids": [
+    "b3e04e9c-1085-484c-83b5-df3a0c5c4f6b"
+  ],
+  "server_timestamp": "2026-10-20T11:30:01.124500+00:00"
+}
+```
+
+### Connection Test Endpoint
+`GET /forward/status`
+
+Allows the Android companion app or dashboard to test connectivity and credential validity without sending payload events.
+
+Headers:
+- `X-NotifyIQ-API-Key`: (Optional) Key to verify
+
+Response (`200 OK`):
+```json
+{
+  "status": "online",
+  "authenticated": true,
+  "version": "1.0.0",
+  "lan_mode": false,
+  "server_time": "2026-10-20T11:30:01.124500+00:00",
+  "lan_ip": "192.168.1.105",
+  "port": 8000
 }
 ```
 
