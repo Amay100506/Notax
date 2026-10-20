@@ -580,39 +580,39 @@ def main():
                     quality = deal.get("quality_label", "fair")
                     emoji = "🔥" if quality == "excellent" else ("⭐" if quality == "good" else "📦")
                     score = deal.get("deal_score", 0)
-                        coupon_display = ""
-                        raw_coupons = deal.get("coupon_codes", [])
-                        if isinstance(raw_coupons, list) and raw_coupons:
-                            coupon_display = ", ".join(str(c) for c in raw_coupons)
-                        elif isinstance(raw_coupons, str) and raw_coupons and raw_coupons != "[]":
-                            coupon_display = raw_coupons.strip("[]'\"")
-                        if coupon_display:
-                            coupon_html = f'<div style="margin-top: 6px;"><span class="coupon-code">🎟️ CODE: {coupon_display}</span></div>'
-                        else:
-                            coupon_html = ""
+                    coupon_display = ""
+                    raw_coupons = deal.get("coupon_codes", [])
+                    if isinstance(raw_coupons, list) and raw_coupons:
+                        coupon_display = ", ".join(str(c) for c in raw_coupons)
+                    elif isinstance(raw_coupons, str) and raw_coupons and raw_coupons != "[]":
+                        coupon_display = raw_coupons.strip("[]'\"")
+                    if coupon_display:
+                        coupon_html = f'<div style="margin-top: 6px;"><span class="coupon-code">🎟️ CODE: {coupon_display}</span></div>'
+                    else:
+                        coupon_html = ""
 
-                        st.markdown(
-                            f"""
-                            <div class="deal-card">
-                                <div style="display: flex; justify-content: space-between; align-items: center;">
-                                    <strong style="font-size: 1.1rem;">{emoji} {deal.get('product_title') or 'Shopping Deal'}</strong>
-                                    <span style="background: rgba(16,185,129,0.2); color: #10B981; padding: 4px 10px; border-radius: 20px; font-weight: 700;">
-                                        Score: {score:.0f}/100
-                                    </span>
-                                </div>
-                                <div style="margin-top: 8px; font-size: 0.9rem;">
-                                    {f'💰 ₹{deal.get("original_price", 0):,.0f} → ₹{deal.get("discounted_price", 0):,.0f}' if deal.get('discounted_price') else ''}
-                                    {f'<span style="color: #10B981; font-weight: 600;"> ({deal.get("discount_percent", 0):.0f}% OFF)</span>' if deal.get('discount_percent') else ''}
-                                </div>
-                                <div style="margin-top: 4px; font-size: 0.82rem; color: #94A3B8;">
-                                    🏪 {deal.get('source_app', 'Unknown')} | 🕒 {str(deal.get('detected_at', ''))[:19].replace('T', ' ')}
-                                    {' | ⚡ TIME-SENSITIVE' if deal.get('is_time_sensitive') else ''}
-                                </div>
-                                {coupon_html}
+                    st.markdown(
+                        f"""
+                        <div class="deal-card">
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <strong style="font-size: 1.1rem;">{emoji} {deal.get('product_title') or 'Shopping Deal'}</strong>
+                                <span style="background: rgba(16,185,129,0.2); color: #10B981; padding: 4px 10px; border-radius: 20px; font-weight: 700;">
+                                    Score: {score:.0f}/100
+                                </span>
                             </div>
-                            """,
-                            unsafe_allow_html=True,
-                        )
+                            <div style="margin-top: 8px; font-size: 0.9rem;">
+                                {f'💰 ₹{deal.get("original_price", 0):,.0f} → ₹{deal.get("discounted_price", 0):,.0f}' if deal.get('discounted_price') else ''}
+                                {f'<span style="color: #10B981; font-weight: 600;"> ({deal.get("discount_percent", 0):.0f}% OFF)</span>' if deal.get('discount_percent') else ''}
+                            </div>
+                            <div style="margin-top: 4px; font-size: 0.82rem; color: #94A3B8;">
+                                🏪 {deal.get('source_app', 'Unknown')} | 🕒 {str(deal.get('detected_at', ''))[:19].replace('T', ' ')}
+                                {' | ⚡ TIME-SENSITIVE' if deal.get('is_time_sensitive') else ''}
+                            </div>
+                            {coupon_html}
+                        </div>
+                        """,
+                        unsafe_allow_html=True,
+                    )
 
         with shop_tab2:
             st.subheader("🎟️ Detected Coupon Codes")
