@@ -1,0 +1,362 @@
+[
+  {
+    "schema_version": 1,
+    "event_id": "shop-001",
+    "package_name": "com.amazon.mShop.android.shopping",
+    "title": "Price Drop Alert!",
+    "text": "Price dropped! Sony WH-1000XM5 now \u20b922,990 (was \u20b929,990). Save \u20b97,000!",
+    "posted_at": "2025-10-19T09:15:00+05:30",
+    "event_type": "posted"
+  },
+  {
+    "schema_version": 1,
+    "event_id": "shop-002",
+    "package_name": "com.amazon.mShop.android.shopping",
+    "title": "Order Shipped",
+    "text": "Your order #402-1234567 has been shipped. Arriving by Oct 22.",
+    "posted_at": "2025-10-19T10:30:00+05:30",
+    "event_type": "posted"
+  },
+  {
+    "schema_version": 1,
+    "event_id": "shop-003",
+    "package_name": "com.amazon.mShop.android.shopping",
+    "title": "Lightning Deal!",
+    "text": "Lightning Deal! Samsung Galaxy M34 at \u20b913,999. Offer ends in 2 hours!",
+    "posted_at": "2025-10-19T11:45:00+05:30",
+    "event_type": "posted"
+  },
+  {
+    "schema_version": 1,
+    "event_id": "shop-004",
+    "package_name": "com.amazon.mShop.android.shopping",
+    "title": "Coupon Applied",
+    "text": "Use code FLAT500 to get \u20b9500 off on electronics. Valid till midnight.",
+    "posted_at": "2025-10-19T13:00:00+05:30",
+    "event_type": "posted"
+  },
+  {
+    "schema_version": 1,
+    "event_id": "shop-005",
+    "package_name": "com.amazon.mShop.android.shopping",
+    "title": "Wishlist Alert",
+    "text": "Item on your Wishlist is now on sale! boAt Rockerz 450 at \u20b91,099",
+    "posted_at": "2025-10-19T14:10:00+05:30",
+    "event_type": "posted"
+  },
+  {
+    "schema_version": 1,
+    "event_id": "shop-006",
+    "package_name": "com.amazon.mShop.android.shopping",
+    "title": "Out for Delivery",
+    "text": "Your package containing OnePlus Nord CE4 is out for delivery today. Track your delivery driver live.",
+    "posted_at": "2025-10-19T08:30:00+05:30",
+    "event_type": "posted"
+  },
+  {
+    "schema_version": 1,
+    "event_id": "shop-007",
+    "package_name": "com.amazon.mShop.android.shopping",
+    "title": "Delivered: Package Handed Off",
+    "text": "Your order #405-9988123 was delivered to resident. Please rate your delivery partner.",
+    "posted_at": "2025-10-19T15:20:00+05:30",
+    "event_type": "posted"
+  },
+  {
+    "schema_version": 1,
+    "event_id": "shop-008",
+    "package_name": "com.amazon.mShop.android.shopping",
+    "title": "Great Indian Festival",
+    "text": "Prime Early Deal: Apple iPad (10th Gen) starts at \u20b931,999 with additional \u20b92,500 SBI card discount.",
+    "posted_at": "2025-10-19T16:00:00+05:30",
+    "event_type": "posted"
+  },
+  {
+    "schema_version": 1,
+    "event_id": "shop-009",
+    "package_name": "com.amazon.mShop.android.shopping",
+    "title": "Refund Processed",
+    "text": "Refund of \u20b92,499 for your returned Philips Air Fryer has been issued to Amazon Pay balance.",
+    "posted_at": "2025-10-19T17:15:00+05:30",
+    "event_type": "posted"
+  },
+  {
+    "schema_version": 1,
+    "event_id": "shop-010",
+    "package_name": "com.amazon.mShop.android.shopping",
+    "title": "Subscribe & Save Delivery",
+    "text": "Your monthly Subscribe & Save order #402-8871204 will be dispatched on Oct 21. Review items by tomorrow 5 PM.",
+    "posted_at": "2025-10-19T18:00:00+05:30",
+    "event_type": "posted"
+  },
+  {
+    "schema_version": 1,
+    "event_id": "shop-011",
+    "package_name": "com.flipkart.android",
+    "title": "Big Billion Days Starts Tonight!",
+    "text": "BBD Early Access: Apple iPhone 15 at \u20b952,999 and Moto Edge 50 at \u20b920,999. Sale goes live tonight at 12:00 AM!",
+    "posted_at": "2025-10-19T19:00:00+05:30",
+    "event_type": "posted"
+  },
+  {
+    "schema_version": 1,
+    "event_id": "shop-012",
+    "package_name": "com.flipkart.android",
+    "title": "SuperCoin Rewards Credited",
+    "text": "You earned 120 SuperCoins on order OD30291823. Redeem your coins now to get \u20b9250 off on electronics!",
+    "posted_at": "2025-10-19T11:00:00+05:30",
+    "event_type": "posted"
+  },
+  {
+    "schema_version": 1,
+    "event_id": "shop-013",
+    "package_name": "com.flipkart.android",
+    "title": "Lowest Price Guaranteed!",
+    "text": "Price Comparison: Realme P1 5G is now \u20b914,999 on Flipkart \u2014 \u20b92,000 lower than retail stores. Grab yours today!",
+    "posted_at": "2025-10-19T12:30:00+05:30",
+    "event_type": "posted"
+  },
+  {
+    "schema_version": 1,
+    "event_id": "shop-014",
+    "package_name": "com.flipkart.android",
+    "title": "Out for Delivery",
+    "text": "Flipkart Wishmaster Vikas is arriving with your order OD2910384712 today. Share OTP 5812 at delivery.",
+    "posted_at": "2025-10-19T09:00:00+05:30",
+    "event_type": "posted"
+  },
+  {
+    "schema_version": 1,
+    "event_id": "shop-015",
+    "package_name": "com.flipkart.android",
+    "title": "Order Delivered",
+    "text": "Delivered: Your package containing Puma Walking Shoes was delivered at 2:45 PM. Check your item and submit a review.",
+    "posted_at": "2025-10-19T14:50:00+05:30",
+    "event_type": "posted"
+  },
+  {
+    "schema_version": 1,
+    "event_id": "shop-016",
+    "package_name": "com.flipkart.android",
+    "title": "Price Crash on Smart TVs",
+    "text": "Samsung 43-inch Crystal 4K TV dropped from \u20b942,990 to \u20b926,990. Additional \u20b91,500 off on Axis Bank credit cards.",
+    "posted_at": "2025-10-19T15:40:00+05:30",
+    "event_type": "posted"
+  },
+  {
+    "schema_version": 1,
+    "event_id": "shop-017",
+    "package_name": "com.flipkart.android",
+    "title": "Flipkart Pay Later Due",
+    "text": "Please pay your Flipkart Pay Later monthly bill of \u20b93,840 due by tomorrow 11:59 PM to avoid late payment charges.",
+    "posted_at": "2025-10-19T17:00:00+05:30",
+    "event_type": "posted"
+  },
+  {
+    "schema_version": 1,
+    "event_id": "shop-018",
+    "package_name": "com.flipkart.android",
+    "title": "Flight Booking Confirmed",
+    "text": "Flipkart Flights: PNR #FK83921 confirmed for BLR to DEL on 28-Oct. E-ticket sent to your registered email.",
+    "posted_at": "2025-10-19T16:30:00+05:30",
+    "event_type": "posted"
+  },
+  {
+    "schema_version": 1,
+    "event_id": "shop-019",
+    "package_name": "com.myntra.android",
+    "title": "Right to Fashion Sale is LIVE",
+    "text": "50% to 80% OFF on 2 Lakh+ styles! Levi's, Tommy Hilfiger, and Mango on sale. Offer valid till midnight.",
+    "posted_at": "2025-10-19T09:30:00+05:30",
+    "event_type": "posted"
+  },
+  {
+    "schema_version": 1,
+    "event_id": "shop-020",
+    "package_name": "com.myntra.android",
+    "title": "Brand Day: H&M Special",
+    "text": "Flat 40% OFF on all fresh seasonal styles + Extra 15% off with coupon code HM15 on orders above \u20b92,499.",
+    "posted_at": "2025-10-19T11:15:00+05:30",
+    "event_type": "posted"
+  },
+  {
+    "schema_version": 1,
+    "event_id": "shop-021",
+    "package_name": "com.myntra.android",
+    "title": "Flat \u20b9400 Off Coupon",
+    "text": "Use code MYNTRA400 on clothing and footwear to get \u20b9400 off on minimum purchase of \u20b91,999. Valid today only.",
+    "posted_at": "2025-10-19T13:45:00+05:30",
+    "event_type": "posted"
+  },
+  {
+    "schema_version": 1,
+    "event_id": "shop-022",
+    "package_name": "com.myntra.android",
+    "title": "Order Shipped: Bluedart Express",
+    "text": "Your Myntra order #11982736-2 has been shipped. Track tracking #BD4918204. Estimated delivery by Oct 22.",
+    "posted_at": "2025-10-19T15:10:00+05:30",
+    "event_type": "posted"
+  },
+  {
+    "schema_version": 1,
+    "event_id": "shop-023",
+    "package_name": "com.myntra.android",
+    "title": "Myntra Insider Notice",
+    "text": "Your 450 Myntra Insider points worth \u20b9225 will expire in 3 days. Use them on your next fashion order!",
+    "posted_at": "2025-10-19T18:15:00+05:30",
+    "event_type": "posted"
+  },
+  {
+    "schema_version": 1,
+    "event_id": "shop-024",
+    "package_name": "in.swiggy.android",
+    "title": "Hungry? 50% Off Lunch Deal",
+    "text": "Craving delicious biryani? Use code SWIGGY50 to get 50% off up to \u20b9100 on orders from top-rated restaurants.",
+    "posted_at": "2025-10-19T12:15:00+05:30",
+    "event_type": "posted"
+  },
+  {
+    "schema_version": 1,
+    "event_id": "shop-025",
+    "package_name": "com.application.zomato",
+    "title": "Dinner Time! Flat 40% Off",
+    "text": "Enjoy tonight's dinner with code ZOMATO40 for 40% off up to \u20b980 + Free delivery on orders above \u20b9199.",
+    "posted_at": "2025-10-19T19:15:00+05:30",
+    "event_type": "posted"
+  },
+  {
+    "schema_version": 1,
+    "event_id": "shop-026",
+    "package_name": "in.swiggy.android",
+    "title": "Free Delivery on Swiggy Instamart",
+    "text": "Free delivery on all grocery and snack orders above \u20b999 today only! Get daily essentials delivered in 10 minutes.",
+    "posted_at": "2025-10-19T08:00:00+05:30",
+    "event_type": "posted"
+  },
+  {
+    "schema_version": 1,
+    "event_id": "shop-027",
+    "package_name": "com.application.zomato",
+    "title": "Order Out for Delivery",
+    "text": "Your meal from Meghana Foods is on the way! Valet Santosh is arriving at your location in 15 minutes.",
+    "posted_at": "2025-10-19T13:10:00+05:30",
+    "event_type": "posted"
+  },
+  {
+    "schema_version": 1,
+    "event_id": "shop-028",
+    "package_name": "in.swiggy.android",
+    "title": "Swiggy Dineout: Save \u20b9500",
+    "text": "Dining out tonight? Pay your bill via Swiggy Dineout to unlock flat 25% off up to \u20b9500 at partnered cafes.",
+    "posted_at": "2025-10-19T18:40:00+05:30",
+    "event_type": "posted"
+  },
+  {
+    "schema_version": 1,
+    "event_id": "shop-029",
+    "package_name": "net.one97.paytm",
+    "title": "Cashback Received! \u20b975",
+    "text": "Cashback of \u20b975 credited to your Paytm Wallet for scanning QR code at Reliance Fresh.",
+    "posted_at": "2025-10-19T10:50:00+05:30",
+    "event_type": "posted"
+  },
+  {
+    "schema_version": 1,
+    "event_id": "shop-030",
+    "package_name": "com.phonepe.app",
+    "title": "Payment Successful: \u20b91,850",
+    "text": "Paid \u20b91,850 to Cult.fit Gym Membership via UPI Transaction ID T251019143011. Debited from HDFC Bank A/c ending 4012.",
+    "posted_at": "2025-10-19T14:30:00+05:30",
+    "event_type": "posted"
+  },
+  {
+    "schema_version": 1,
+    "event_id": "shop-031",
+    "package_name": "net.one97.paytm",
+    "title": "Electricity Bill Due Tomorrow",
+    "text": "Please pay your BESCOM electricity bill of \u20b92,180 due tomorrow Oct 20 before 5 PM to prevent late payment penalty.",
+    "posted_at": "2025-10-19T09:20:00+05:30",
+    "event_type": "posted"
+  },
+  {
+    "schema_version": 1,
+    "event_id": "shop-032",
+    "package_name": "com.phonepe.app",
+    "title": "Broadband Bill Reminder",
+    "text": "Your Airtel Xstream Broadband bill of \u20b91,179 is due on Oct 21. Pay now to enjoy uninterrupted high-speed internet.",
+    "posted_at": "2025-10-19T16:00:00+05:30",
+    "event_type": "posted"
+  },
+  {
+    "schema_version": 1,
+    "event_id": "shop-033",
+    "package_name": "net.one97.paytm",
+    "title": "Recharge Offer: Flat \u20b930 Cashback",
+    "text": "Recharge your Jio or Airtel mobile number with \u20b9299 or more using code RECHARGE30 to get flat \u20b930 cashback.",
+    "posted_at": "2025-10-19T17:45:00+05:30",
+    "event_type": "posted"
+  },
+  {
+    "schema_version": 1,
+    "event_id": "shop-034",
+    "package_name": "com.ril.ajio",
+    "title": "Ajio All Stars Sale is LIVE!",
+    "text": "50-90% Off on Top Brands! Use code STARS1000 for extra \u20b91,000 off on orders above \u20b93,990.",
+    "posted_at": "2025-10-19T10:00:00+05:30",
+    "event_type": "posted"
+  },
+  {
+    "schema_version": 1,
+    "event_id": "shop-035",
+    "package_name": "com.fsn.nykaa",
+    "title": "Nykaa Pink Friday Sale Sneak Peek",
+    "text": "Exclusive Early Access: Buy 1 Get 1 Free on L'Oreal & Maybelline cosmetics! Offer ends tonight at midnight.",
+    "posted_at": "2025-10-19T11:30:00+05:30",
+    "event_type": "posted"
+  },
+  {
+    "schema_version": 1,
+    "event_id": "shop-036",
+    "package_name": "com.meesho.supply",
+    "title": "Mega Blockbuster Sale!",
+    "text": "Ethnic wear starting from \u20b9149! Free delivery on your first order + Extra \u20b950 off applied at checkout.",
+    "posted_at": "2025-10-19T12:00:00+05:30",
+    "event_type": "posted"
+  },
+  {
+    "schema_version": 1,
+    "event_id": "shop-037",
+    "package_name": "com.ril.ajio",
+    "title": "Order Confirmed: #AJ9812401",
+    "text": "Your order for Dennis Lingo Slim Fit Shirt (\u20b9899) is confirmed. Expected delivery by Thursday, Oct 23.",
+    "posted_at": "2025-10-19T14:40:00+05:30",
+    "event_type": "posted"
+  },
+  {
+    "schema_version": 1,
+    "event_id": "shop-038",
+    "package_name": "com.fsn.nykaa",
+    "title": "Order Shipped: NYK928103",
+    "text": "Your package with The Ordinary Niacinamide Serum has shipped via Blue Dart. Arriving by tomorrow.",
+    "posted_at": "2025-10-19T15:50:00+05:30",
+    "event_type": "posted"
+  },
+  {
+    "schema_version": 1,
+    "event_id": "shop-039",
+    "package_name": "com.meesho.supply",
+    "title": "Out for Delivery",
+    "text": "Your Meesho parcel #MEE448201 is out for delivery today. Cash on delivery amount to pay: \u20b9349.",
+    "posted_at": "2025-10-19T09:40:00+05:30",
+    "event_type": "posted"
+  },
+  {
+    "schema_version": 1,
+    "event_id": "shop-040",
+    "package_name": "com.ril.ajio",
+    "title": "Flash Deal: Ends in 1 Hour!",
+    "text": "Sneakers flash sale! Red Tape & Puma sneakers at flat \u20b91,199. Complete your purchase before 7 PM!",
+    "posted_at": "2025-10-19T18:00:00+05:30",
+    "event_type": "posted"
+  }
+]

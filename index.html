@@ -1,0 +1,2442 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>SafeSpace VR: Intelligent Boundary and Obstacle Alert System</title>
+  <meta name="description" content="SafeSpace VR: Intelligent Boundary and Obstacle Alert System. See Beyond VR. Stay Safe in Reality. WebXR VR safety layer with proximity detection, spatial audio, voice alerts, and boundary visualization.">
+
+  <!-- A-Frame 1.6.0 WebXR Library -->
+  <script src="https://aframe.io/releases/1.6.0/aframe.min.js"></script>
+
+  <!-- Google Fonts: Outfit, Space Grotesk, JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;800&family=Outfit:wght@400;600;700;900&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --bg-dark: #07090e;
+      --bg-card: rgba(13, 18, 28, 0.88);
+      --bg-card-hover: rgba(22, 30, 46, 0.95);
+      --border-cyan: rgba(0, 240, 255, 0.35);
+      --neon-cyan: #00f0ff;
+      --neon-green: #10b981;
+      --neon-yellow: #f59e0b;
+      --neon-orange: #f97316;
+      --neon-red: #ef4444;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --font-main: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+      --font-heading: 'Space Grotesk', sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+    }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background-color: var(--bg-dark);
+      font-family: var(--font-main);
+      color: var(--text-main);
+    }
+
+    /* A-Frame Viewport Container */
+    #vr-viewport {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 1;
+    }
+
+    /* 2D UI Overlay Canvas & HUD */
+    #ui-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 10;
+      pointer-events: none;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 16px;
+      transition: opacity 0.3s ease;
+    }
+
+    /* Allow clicking on interactive UI elements */
+    .interactive-ui {
+      pointer-events: auto;
+    }
+
+    /* Screen-Edge Alert Vignette Overlay */
+    #alert-vignette {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 5;
+      pointer-events: none;
+      transition: background 0.25s ease, box-shadow 0.25s ease, opacity 0.25s ease;
+      opacity: 0;
+    }
+
+    #alert-vignette.caution {
+      opacity: 0.8;
+      box-shadow: inset 0 0 80px rgba(245, 158, 11, 0.45);
+      border: 3px solid rgba(245, 158, 11, 0.5);
+    }
+
+    #alert-vignette.warning {
+      opacity: 0.9;
+      box-shadow: inset 0 0 120px rgba(249, 115, 22, 0.65);
+      border: 4px solid rgba(249, 115, 22, 0.75);
+      animation: pulse-border 1s infinite alternate;
+    }
+
+    #alert-vignette.danger {
+      opacity: 1;
+      box-shadow: inset 0 0 160px rgba(239, 68, 68, 0.85);
+      border: 6px solid rgba(239, 68, 68, 0.9);
+      animation: strobe-border 0.5s infinite alternate;
+    }
+
+    @keyframes pulse-border {
+      0% { box-shadow: inset 0 0 80px rgba(249, 115, 22, 0.4); }
+      100% { box-shadow: inset 0 0 140px rgba(249, 115, 22, 0.8); }
+    }
+
+    @keyframes strobe-border {
+      0% { box-shadow: inset 0 0 100px rgba(239, 68, 68, 0.5); background: rgba(239, 68, 68, 0.05); }
+      100% { box-shadow: inset 0 0 180px rgba(239, 68, 68, 0.9); background: rgba(239, 68, 68, 0.15); }
+    }
+
+    /* Top Navigation / Status Header */
+    .top-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 12px;
+    }
+
+    .brand-pill {
+      background: var(--bg-card);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid var(--border-cyan);
+      border-radius: 14px;
+      padding: 12px 18px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    }
+
+    .brand-title {
+      font-family: var(--font-heading);
+      font-size: 1.25rem;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .brand-title span.badge-pro {
+      background: linear-gradient(135deg, #00f0ff, #3b82f6);
+      color: #000;
+      font-size: 0.65rem;
+      font-weight: 800;
+      padding: 2px 6px;
+      border-radius: 6px;
+      text-transform: uppercase;
+    }
+
+    .brand-tagline {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      margin-top: 2px;
+      font-weight: 500;
+    }
+
+    /* Sensor Notice Badge */
+    .sensor-truth-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      margin-top: 6px;
+      padding: 3px 8px;
+      background: rgba(245, 158, 11, 0.12);
+      border: 1px solid rgba(245, 158, 11, 0.35);
+      border-radius: 6px;
+      font-family: var(--font-mono);
+      font-size: 0.68rem;
+      color: #fbbf24;
+    }
+
+    .pulse-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #fbbf24;
+      animation: pulse-dot-anim 1.5s infinite;
+    }
+
+    @keyframes pulse-dot-anim {
+      0% { transform: scale(0.9); opacity: 0.6; }
+      50% { transform: scale(1.3); opacity: 1; box-shadow: 0 0 8px #fbbf24; }
+      100% { transform: scale(0.9); opacity: 0.6; }
+    }
+
+    /* Top Right Telemetry & Status HUD */
+    .telemetry-container {
+      display: flex;
+      gap: 10px;
+    }
+
+    .hud-box {
+      background: var(--bg-card);
+      backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 14px;
+      padding: 10px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+    }
+
+    .hud-box.status-safe { border-color: rgba(16, 185, 129, 0.4); }
+    .hud-box.status-caution { border-color: rgba(245, 158, 11, 0.6); }
+    .hud-box.status-warning { border-color: rgba(249, 115, 22, 0.8); }
+    .hud-box.status-danger { border-color: rgba(239, 68, 68, 0.9); }
+
+    .hud-label {
+      font-size: 0.68rem;
+      text-transform: uppercase;
+      font-weight: 700;
+      color: var(--text-muted);
+      letter-spacing: 0.5px;
+    }
+
+    .hud-value {
+      font-family: var(--font-mono);
+      font-size: 1.1rem;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .status-badge-text {
+      padding: 2px 8px;
+      border-radius: 6px;
+      font-size: 0.85rem;
+      font-weight: 800;
+      letter-spacing: 0.5px;
+    }
+
+    .badge-safe { background: rgba(16, 185, 129, 0.2); color: var(--neon-green); border: 1px solid var(--neon-green); }
+    .badge-caution { background: rgba(245, 158, 11, 0.2); color: var(--neon-yellow); border: 1px solid var(--neon-yellow); }
+    .badge-warning { background: rgba(249, 115, 22, 0.2); color: var(--neon-orange); border: 1px solid var(--neon-orange); }
+    .badge-danger { background: rgba(239, 68, 68, 0.3); color: var(--neon-red); border: 1px solid var(--neon-red); animation: danger-blink 0.6s infinite alternate; }
+
+    @keyframes danger-blink {
+      0% { opacity: 0.8; }
+      100% { opacity: 1; transform: scale(1.05); }
+    }
+
+    /* Live Directional Compass Banner */
+    .directional-banner {
+      position: absolute;
+      top: 90px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--bg-card);
+      backdrop-filter: blur(18px);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 20px;
+      padding: 8px 24px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      box-shadow: 0 12px 36px rgba(0, 0, 0, 0.6);
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .direction-arrow-icon {
+      font-size: 1.6rem;
+      font-weight: 900;
+      color: var(--neon-cyan);
+      display: inline-block;
+      transition: transform 0.2s ease, color 0.2s ease;
+    }
+
+    .direction-info {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .direction-title {
+      font-family: var(--font-heading);
+      font-size: 0.95rem;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+    }
+
+    .direction-sub {
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
+
+    /* Bottom Interactive Controls Bar */
+    .bottom-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      gap: 16px;
+    }
+
+    /* Radar HUD Box */
+    .radar-card {
+      background: var(--bg-card);
+      backdrop-filter: blur(16px);
+      border: 1px solid var(--border-cyan);
+      border-radius: 16px;
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    }
+
+    .radar-title {
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      color: var(--neon-cyan);
+      display: flex;
+      justify-content: space-between;
+      width: 100%;
+    }
+
+    #radar-canvas {
+      width: 140px;
+      height: 140px;
+      background: rgba(4, 8, 15, 0.95);
+      border: 1px solid rgba(0, 240, 255, 0.3);
+      border-radius: 50%;
+    }
+
+    /* Primary Action Buttons Bar */
+    .action-button-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .btn-cyber {
+      background: rgba(13, 20, 32, 0.85);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(0, 240, 255, 0.4);
+      color: #fff;
+      font-family: var(--font-heading);
+      font-size: 0.88rem;
+      font-weight: 700;
+      padding: 10px 18px;
+      border-radius: 12px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.3);
+      outline: none;
+    }
+
+    .btn-cyber:hover {
+      background: rgba(0, 240, 255, 0.15);
+      border-color: var(--neon-cyan);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(0, 240, 255, 0.25);
+    }
+
+    .btn-cyber:active {
+      transform: translateY(0);
+    }
+
+    .btn-cyber.primary {
+      background: linear-gradient(135deg, #00c6ff, #0072ff);
+      border: none;
+      color: #fff;
+      font-weight: 800;
+      box-shadow: 0 4px 20px rgba(0, 198, 255, 0.4);
+    }
+
+    .btn-cyber.primary:hover {
+      background: linear-gradient(135deg, #00e1ff, #0088ff);
+      box-shadow: 0 6px 26px rgba(0, 198, 255, 0.6);
+    }
+
+    .btn-cyber.danger-btn {
+      border-color: rgba(239, 68, 68, 0.5);
+      color: #fca5a5;
+    }
+
+    .btn-cyber.danger-btn:hover {
+      background: rgba(239, 68, 68, 0.2);
+      border-color: var(--neon-red);
+      box-shadow: 0 6px 20px rgba(239, 68, 68, 0.3);
+    }
+
+    /* Desktop Controls Legend */
+    .controls-legend {
+      background: var(--bg-card);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
+      padding: 8px 14px;
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      display: flex;
+      gap: 12px;
+    }
+
+    .key-badge {
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      padding: 1px 5px;
+      border-radius: 4px;
+      color: #fff;
+      font-weight: 600;
+    }
+
+    /* Guided Demonstration Progress Banner */
+    #demo-banner {
+      position: absolute;
+      top: 155px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: linear-gradient(135deg, rgba(16, 24, 39, 0.95), rgba(30, 41, 59, 0.95));
+      backdrop-filter: blur(20px);
+      border: 1px solid var(--neon-cyan);
+      border-radius: 16px;
+      padding: 14px 24px;
+      display: none;
+      flex-direction: column;
+      gap: 10px;
+      width: 90%;
+      max-width: 580px;
+      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.7);
+      animation: fadeInDown 0.3s ease;
+      z-index: 20;
+    }
+
+    @keyframes fadeInDown {
+      from { opacity: 0; transform: translate(-50%, -15px); }
+      to { opacity: 1; transform: translate(-50%, 0); }
+    }
+
+    .demo-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .demo-step-title {
+      font-family: var(--font-heading);
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--neon-cyan);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .demo-step-desc {
+      font-size: 0.84rem;
+      color: #cbd5e1;
+      line-height: 1.4;
+    }
+
+    .demo-progress-bar {
+      width: 100%;
+      height: 6px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 3px;
+      overflow: hidden;
+    }
+
+    .demo-progress-fill {
+      height: 100%;
+      width: 14%;
+      background: linear-gradient(90deg, #00f0ff, #3b82f6);
+      transition: width 0.4s ease;
+    }
+
+    .demo-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+    }
+
+    /* Modal Windows (Settings, Calibration, Help) */
+    .modal-backdrop {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.75);
+      backdrop-filter: blur(10px);
+      z-index: 100;
+      display: none;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+
+    .modal-window {
+      background: #0b111e;
+      border: 1px solid var(--border-cyan);
+      border-radius: 20px;
+      width: 100%;
+      max-width: 620px;
+      max-height: 85vh;
+      overflow-y: auto;
+      padding: 24px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      padding-bottom: 12px;
+    }
+
+    .modal-title {
+      font-family: var(--font-heading);
+      font-size: 1.3rem;
+      font-weight: 700;
+      color: #fff;
+    }
+
+    .modal-close-btn {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      font-size: 1.4rem;
+      cursor: pointer;
+      padding: 4px 8px;
+      border-radius: 6px;
+      line-height: 1;
+    }
+
+    .modal-close-btn:hover {
+      color: #fff;
+      background: rgba(255, 255, 255, 0.1);
+    }
+
+    .setting-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .setting-info {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      max-width: 65%;
+    }
+
+    .setting-title {
+      font-size: 0.92rem;
+      font-weight: 600;
+      color: #fff;
+    }
+
+    .setting-desc {
+      font-size: 0.76rem;
+      color: var(--text-muted);
+    }
+
+    .setting-control {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .cyber-slider {
+      -webkit-appearance: none;
+      width: 130px;
+      height: 6px;
+      background: rgba(255, 255, 255, 0.15);
+      border-radius: 3px;
+      outline: none;
+    }
+
+    .cyber-slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: var(--neon-cyan);
+      cursor: pointer;
+      box-shadow: 0 0 10px var(--neon-cyan);
+    }
+
+    .slider-val {
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+      font-weight: 700;
+      min-width: 45px;
+      text-align: right;
+    }
+
+    .toggle-switch {
+      position: relative;
+      display: inline-block;
+      width: 46px;
+      height: 24px;
+    }
+
+    .toggle-switch input { opacity: 0; width: 0; height: 0; }
+    .toggle-slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background-color: rgba(255, 255, 255, 0.2);
+      transition: .3s;
+      border-radius: 24px;
+    }
+    .toggle-slider:before {
+      position: absolute;
+      content: "";
+      height: 18px; width: 18px;
+      left: 3px; bottom: 3px;
+      background-color: white;
+      transition: .3s;
+      border-radius: 50%;
+    }
+    input:checked + .toggle-slider {
+      background-color: var(--neon-cyan);
+    }
+    input:checked + .toggle-slider:before {
+      transform: translateX(22px);
+      background-color: #000;
+    }
+
+    /* Welcome / Startup Hero Screen */
+    #startup-screen {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: radial-gradient(circle at center, rgba(14, 23, 42, 0.92) 0%, rgba(3, 7, 18, 0.98) 100%);
+      backdrop-filter: blur(25px);
+      z-index: 80;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 24px;
+      transition: opacity 0.4s ease, visibility 0.4s ease;
+    }
+
+    .startup-card {
+      background: rgba(11, 17, 30, 0.9);
+      border: 1px solid var(--border-cyan);
+      border-radius: 24px;
+      padding: 36px 40px;
+      max-width: 680px;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 20px;
+      box-shadow: 0 25px 70px rgba(0, 0, 0, 0.85);
+    }
+
+    .startup-logo-icon {
+      width: 68px;
+      height: 68px;
+      border-radius: 18px;
+      background: linear-gradient(135deg, rgba(0, 240, 255, 0.2), rgba(59, 130, 246, 0.3));
+      border: 2px solid var(--neon-cyan);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 2rem;
+      box-shadow: 0 0 30px rgba(0, 240, 255, 0.4);
+    }
+
+    .startup-title {
+      font-family: var(--font-heading);
+      font-size: 2rem;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      background: linear-gradient(135deg, #ffffff, #93c5fd, #00f0ff);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .startup-subtitle {
+      font-size: 1.05rem;
+      font-weight: 600;
+      color: var(--neon-cyan);
+      letter-spacing: 0.5px;
+    }
+
+    .startup-tagline {
+      font-size: 0.88rem;
+      color: var(--text-muted);
+      max-width: 520px;
+      line-height: 1.5;
+    }
+
+    .disclaimer-box {
+      background: rgba(245, 158, 11, 0.08);
+      border: 1px solid rgba(245, 158, 11, 0.3);
+      border-radius: 12px;
+      padding: 12px 16px;
+      text-align: left;
+      font-size: 0.75rem;
+      color: #fde68a;
+      line-height: 1.45;
+    }
+
+    .disclaimer-box strong {
+      color: #fbbf24;
+      display: block;
+      margin-bottom: 4px;
+      font-family: var(--font-heading);
+      font-size: 0.8rem;
+    }
+
+    .startup-actions {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 12px;
+      width: 100%;
+      margin-top: 8px;
+    }
+
+    .vr-mode-active #startup-screen {
+      display: none !important;
+    }
+
+    /* Custom Scrollbars */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: rgba(0, 0, 0, 0.2); }
+    ::-webkit-scrollbar-thumb { background: rgba(0, 240, 255, 0.3); border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(0, 240, 255, 0.6); }
+
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+      .top-bar { flex-direction: column; }
+      .telemetry-container { width: 100%; justify-content: space-between; }
+      .directional-banner { top: 140px; width: 92%; }
+      .controls-legend { display: none; }
+      .startup-card { padding: 24px; }
+      .startup-title { font-size: 1.5rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Screen-Edge Alert Strobe Overlay -->
+  <div id="alert-vignette"></div>
+
+  <!-- A-Frame 3D WebXR Scene Viewport -->
+  <div id="vr-viewport">
+    <a-scene
+      embedded
+      renderer="antialias: true; colorManagement: true; foveationLevel: 2; highRefreshRate: true;"
+      vr-mode-ui="enabled: true"
+      background="color: #07090e"
+      fog="type: exponential; color: #07090e; density: 0.04;"
+      safespace-system
+    >
+      <!-- Assets Management -->
+      <a-assets>
+        <a-mixin id="hazard-marker-mixin"
+          geometry="primitive: cylinder; radius: 0.25; height: 0.05;"
+          material="color: #f59e0b; emissive: #f59e0b; emissiveIntensity: 0.8; opacity: 0.9;"
+        ></a-mixin>
+      </a-assets>
+
+      <!-- Player Rig with Camera and Meta Quest 3S Controllers -->
+      <a-entity id="player-rig" position="0 0 0">
+        <!-- Head Camera with Look Controls & WASD for desktop -->
+        <a-entity id="headset-cam" camera="near: 0.1; far: 100;" position="0 1.6 0" look-controls="pointerLockEnabled: false" wasd-controls="acceleration: 25; fly: false;">
+          
+          <!-- In-VR Floating HUD (Anchored in Front of User's View) -->
+          <a-entity id="vr-floating-hud" position="0 -0.28 -1.1" rotation="-12 0 0" scale="0.9 0.9 0.9">
+            <!-- HUD Curved/Glass Background -->
+            <a-plane width="1.2" height="0.45" material="color: #0b111e; opacity: 0.88; transparent: true; roughness: 0.2; metalness: 0.8;" position="0 0 -0.01"></a-plane>
+            <a-ring radius-inner="0.59" radius-outer="0.6" material="color: #00f0ff; emissive: #00f0ff; emissiveIntensity: 0.5;" position="0 0 0"></a-ring>
+            
+            <!-- HUD Header Text -->
+            <a-text id="vr-hud-title" value="SAFESPACE VR" align="center" position="0 0.16 0.01" scale="0.32 0.32 0.32" color="#00f0ff" font="exo2bold"></a-text>
+            <a-text id="vr-hud-tagline" value="INTELLIGENT OBSTACLE SYSTEM" align="center" position="0 0.11 0.01" scale="0.16 0.16 0.16" color="#94a3b8"></a-text>
+
+            <!-- Status Indicator Badge -->
+            <a-plane id="vr-hud-status-bg" width="0.4" height="0.1" position="-0.32 0.01 0.01" material="color: #10b981; emissive: #10b981; emissiveIntensity: 0.4;"></a-plane>
+            <a-text id="vr-hud-status-text" value="SAFE" align="center" position="-0.32 0.01 0.02" scale="0.28 0.28 0.28" color="#ffffff" font="kelsonsans"></a-text>
+
+            <!-- Direction & Distance Readout -->
+            <a-text id="vr-hud-direction-text" value="DIR: ALL CLEAR" align="left" position="-0.06 0.03 0.01" scale="0.22 0.22 0.22" color="#f8fafc"></a-text>
+            <a-text id="vr-hud-distance-text" value="DIST: SAFE (> 3.0m)" align="left" position="-0.06 -0.04 0.01" scale="0.2 0.2 0.2" color="#38bdf8"></a-text>
+            
+            <!-- Boundary & Voice State -->
+            <a-text id="vr-hud-boundary-text" value="BOUNDARY: IN SAFE ZONE" align="center" position="0 -0.14 0.01" scale="0.18 0.18 0.18" color="#10b981"></a-text>
+          </a-entity>
+
+          <!-- In-VR Directional Reticle Pointer on Floor of View -->
+          <a-entity id="vr-directional-cone" position="0 -0.5 -1.0" rotation="90 0 0" scale="0.15 0.25 0.15" visible="false">
+            <a-cone color="#f59e0b" radius-bottom="0.2" radius-top="0.0" height="0.8" material="emissive: #f59e0b; emissiveIntensity: 0.9;"></a-cone>
+          </a-entity>
+        </a-entity>
+
+        <!-- Meta Quest 3S Left Touch Controller -->
+        <a-entity id="left-controller"
+          oculus-touch-controls="hand: left; model: true;"
+          laser-controls="hand: left"
+          raycaster="objects: .clickable; far: 4;"
+          safespace-controller="hand: left"
+        >
+          <!-- Controller Proximity Sphere -->
+          <a-sphere radius="0.08" material="color: #00f0ff; opacity: 0.2; wireframe: true;" position="0 0 -0.05"></a-sphere>
+        </a-entity>
+
+        <!-- Meta Quest 3S Right Touch Controller -->
+        <a-entity id="right-controller"
+          oculus-touch-controls="hand: right; model: true;"
+          laser-controls="hand: right"
+          raycaster="objects: .clickable; far: 4;"
+          safespace-controller="hand: right"
+        >
+          <!-- Controller Proximity Sphere -->
+          <a-sphere radius="0.08" material="color: #00f0ff; opacity: 0.2; wireframe: true;" position="0 0 -0.05"></a-sphere>
+        </a-entity>
+
+        <!-- Ground Return-to-SafeZone Hologram Arrow -->
+        <a-entity id="floor-guide-arrow" position="0 0.02 0" rotation="-90 0 0" visible="false">
+          <a-ring radius-inner="0.3" radius-outer="0.35" material="color: #00f0ff; emissive: #00f0ff; emissiveIntensity: 0.8; opacity: 0.85;"></a-ring>
+          <a-triangle vertex-a="0 0.5 0" vertex-b="-0.25 0.1 0" vertex-c="0.25 0.1 0" material="color: #00f0ff; emissive: #00f0ff; emissiveIntensity: 0.9;"></a-triangle>
+        </a-entity>
+      </a-entity>
+
+      <!-- 3D Lighting Setup -->
+      <a-entity light="type: ambient; color: #1e293b; intensity: 0.9;"></a-entity>
+      <a-entity light="type: directional; color: #38bdf8; intensity: 0.8; position: 4 8 3; castShadow: true;"></a-entity>
+      <a-entity light="type: point; color: #00f0ff; intensity: 1.2; distance: 15; position: 0 4 0;"></a-entity>
+
+      <!-- Safe Space Testing Arena: Floor Grid -->
+      <a-plane position="0 0 0" rotation="-90 0 0" width="40" height="40" material="color: #080c14; roughness: 0.6; metalness: 0.4;"></a-plane>
+      <a-grid position="0 0.005 0" width="40" height="40" color="#0e2439" cell-size="1"></a-grid>
+
+      <!-- Concentric Safe & Caution Perimeter Rings on Ground -->
+      <!-- Center Anchor Marker -->
+      <a-circle position="0 0.01 0" rotation="-90 0 0" radius="0.4" material="color: #00f0ff; opacity: 0.4; emissive: #00f0ff; emissiveIntensity: 0.5;"></a-circle>
+      
+      <!-- Danger Zone Ring (0.75m radius) -->
+      <a-ring id="ring-danger" position="0 0.012 0" rotation="-90 0 0" radius-inner="0.72" radius-outer="0.75" material="color: #ef4444; opacity: 0.4; emissive: #ef4444; emissiveIntensity: 0.4;"></a-ring>
+      
+      <!-- Warning Zone Ring (1.5m radius) -->
+      <a-ring id="ring-warning" position="0 0.012 0" rotation="-90 0 0" radius-inner="1.47" radius-outer="1.5" material="color: #f97316; opacity: 0.35; emissive: #f97316; emissiveIntensity: 0.3;"></a-ring>
+
+      <!-- Caution Zone Ring (2.4m radius) -->
+      <a-ring id="ring-caution" position="0 0.012 0" rotation="-90 0 0" radius-inner="2.37" radius-outer="2.4" material="color: #f59e0b; opacity: 0.35; emissive: #f59e0b; emissiveIntensity: 0.3;"></a-ring>
+
+      <!-- Safe Boundary Outer Ring (3.2m radius) -->
+      <a-ring id="ring-safe-boundary" position="0 0.012 0" rotation="-90 0 0" radius-inner="3.15" radius-outer="3.2" material="color: #00f0ff; opacity: 0.8; emissive: #00f0ff; emissiveIntensity: 0.8;"></a-ring>
+
+      <!-- Dynamic Boundary Virtual Laser Wall (Cylinder Laser Curtain) -->
+      <a-cylinder
+        id="boundary-laser-curtain"
+        position="0 1.5 0"
+        radius="3.2"
+        height="3"
+        open-ended="true"
+        side="double"
+        material="color: #00f0ff; opacity: 0.12; transparent: true; wireframe: true; emissive: #00f0ff; emissiveIntensity: 0.2;"
+      ></a-cylinder>
+
+      <!-- Boundary Corner Safety Bollards -->
+      <a-entity position="2.26 0 2.26"><a-cylinder radius="0.08" height="1.0" position="0 0.5 0" material="color: #1e293b; metalness: 0.8;"></a-cylinder><a-sphere radius="0.1" position="0 1.05 0" material="color: #00f0ff; emissive: #00f0ff; emissiveIntensity: 0.9;"></a-sphere></a-entity>
+      <a-entity position="-2.26 0 2.26"><a-cylinder radius="0.08" height="1.0" position="0 0.5 0" material="color: #1e293b; metalness: 0.8;"></a-cylinder><a-sphere radius="0.1" position="0 1.05 0" material="color: #00f0ff; emissive: #00f0ff; emissiveIntensity: 0.9;"></a-sphere></a-entity>
+      <a-entity position="2.26 0 -2.26"><a-cylinder radius="0.08" height="1.0" position="0 0.5 0" material="color: #1e293b; metalness: 0.8;"></a-cylinder><a-sphere radius="0.1" position="0 1.05 0" material="color: #00f0ff; emissive: #00f0ff; emissiveIntensity: 0.9;"></a-sphere></a-entity>
+      <a-entity position="-2.26 0 -2.26"><a-cylinder radius="0.08" height="1.0" position="0 0.5 0" material="color: #1e293b; metalness: 0.8;"></a-cylinder><a-sphere radius="0.1" position="0 1.05 0" material="color: #00f0ff; emissive: #00f0ff; emissiveIntensity: 0.9;"></a-sphere></a-entity>
+
+      <!-- ================= 3D OBSTACLE SYSTEM ================= -->
+      <!-- Container for all active registered obstacles -->
+      <a-entity id="obstacle-container">
+
+        <!-- Obstacle 1: Roaming Autonomous LiDAR Hazard Rover -->
+        <a-entity id="obs-rover" class="safespace-obstacle" position="0 0 -4.5" data-name="Autonomous Hazard Rover" data-radius="0.5" data-type="dynamic">
+          <!-- Rover Base Chassis -->
+          <a-box width="0.8" height="0.25" depth="0.8" material="color: #1e293b; roughness: 0.3; metalness: 0.8;" position="0 0.15 0"></a-box>
+          <!-- Hazard Yellow/Black Stripes Stripe -->
+          <a-box width="0.82" height="0.08" depth="0.82" material="color: #f59e0b; emissive: #f59e0b; emissiveIntensity: 0.5;" position="0 0.15 0"></a-box>
+          <!-- Wheels -->
+          <a-cylinder radius="0.12" height="0.1" rotation="0 0 90" position="0.42 0.12 0.25" material="color: #0f172a;"></a-cylinder>
+          <a-cylinder radius="0.12" height="0.1" rotation="0 0 90" position="-0.42 0.12 0.25" material="color: #0f172a;"></a-cylinder>
+          <a-cylinder radius="0.12" height="0.1" rotation="0 0 90" position="0.42 0.12 -0.25" material="color: #0f172a;"></a-cylinder>
+          <a-cylinder radius="0.12" height="0.1" rotation="0 0 90" position="-0.42 0.12 -0.25" material="color: #0f172a;"></a-cylinder>
+          <!-- Rotating LiDAR Dome Sensor -->
+          <a-cylinder id="rover-lidar-head" radius="0.18" height="0.2" position="0 0.35 0" material="color: #0284c7; metalness: 0.9;">
+            <a-box width="0.04" height="0.04" depth="0.22" position="0 0 0" material="color: #ef4444; emissive: #ef4444; emissiveIntensity: 0.9;"></a-box>
+          </a-cylinder>
+          <!-- 3D Floating Spatial Warning Tag Billboard above Obstacle -->
+          <a-entity class="obstacle-beacon" position="0 0.8 0">
+            <a-plane width="0.9" height="0.3" material="color: #0b111e; opacity: 0.85; transparent: true;"></a-plane>
+            <a-text class="beacon-label" value="ROVER HAZARD" align="center" position="0 0.05 0.02" scale="0.25 0.25 0.25" color="#f59e0b"></a-text>
+            <a-text class="beacon-dist" value="4.5m" align="center" position="0 -0.06 0.02" scale="0.22 0.22 0.22" color="#38bdf8"></a-text>
+          </a-entity>
+        </a-entity>
+
+        <!-- Obstacle 2: Static Industrial Cyber Crate (Right Side) -->
+        <a-entity id="obs-crate-right" class="safespace-obstacle" position="3.2 0 0.5" data-name="Industrial Storage Crate" data-radius="0.55" data-type="static">
+          <a-box width="0.9" height="1.1" depth="0.9" position="0 0.55 0" material="color: #1e293b; roughness: 0.5; metalness: 0.7;"></a-box>
+          <a-box width="0.92" height="0.1" depth="0.92" position="0 0.55 0" material="color: #f97316; emissive: #f97316; emissiveIntensity: 0.6;"></a-box>
+          <!-- Corner Beacons -->
+          <a-sphere radius="0.05" position="0.45 1.1 0.45" material="color: #f97316; emissive: #f97316; emissiveIntensity: 0.8;"></a-sphere>
+          <a-sphere radius="0.05" position="-0.45 1.1 0.45" material="color: #f97316; emissive: #f97316; emissiveIntensity: 0.8;"></a-sphere>
+          <!-- 3D Billboard -->
+          <a-entity class="obstacle-beacon" position="0 1.45 0">
+            <a-plane width="0.8" height="0.25" material="color: #0b111e; opacity: 0.85; transparent: true;"></a-plane>
+            <a-text class="beacon-label" value="CARGO CRATE" align="center" position="0 0.04 0.02" scale="0.22 0.22 0.22" color="#f97316"></a-text>
+            <a-text class="beacon-dist" value="3.2m" align="center" position="0 -0.05 0.02" scale="0.2 0.2 0.2" color="#38bdf8"></a-text>
+          </a-entity>
+        </a-entity>
+
+        <!-- Obstacle 3: High-Voltage Safety Pylon (Front-Left) -->
+        <a-entity id="obs-pylon-left" class="safespace-obstacle" position="-2.6 0 -2.4" data-name="Safety Pylon Alpha" data-radius="0.4" data-type="static">
+          <a-cylinder radius="0.15" height="1.6" position="0 0.8 0" material="color: #0f172a; metalness: 0.8;"></a-cylinder>
+          <!-- Warning Rings on Pylon -->
+          <a-torus radius="0.18" radius-tubular="0.02" position="0 0.6 0" rotation="90 0 0" material="color: #f59e0b; emissive: #f59e0b; emissiveIntensity: 0.6;"></a-torus>
+          <a-torus radius="0.18" radius-tubular="0.02" position="0 1.2 0" rotation="90 0 0" material="color: #f59e0b; emissive: #f59e0b; emissiveIntensity: 0.6;"></a-torus>
+          <!-- Top Blinking Warning Beacon -->
+          <a-sphere radius="0.12" position="0 1.65 0" material="color: #ef4444; emissive: #ef4444; emissiveIntensity: 0.9;"></a-sphere>
+          <!-- 3D Billboard -->
+          <a-entity class="obstacle-beacon" position="0 2.0 0">
+            <a-plane width="0.8" height="0.25" material="color: #0b111e; opacity: 0.85; transparent: true;"></a-plane>
+            <a-text class="beacon-label" value="PYLON OBSTACLE" align="center" position="0 0.04 0.02" scale="0.22 0.22 0.22" color="#f59e0b"></a-text>
+            <a-text class="beacon-dist" value="3.5m" align="center" position="0 -0.05 0.02" scale="0.2 0.2 0.2" color="#38bdf8"></a-text>
+          </a-entity>
+        </a-entity>
+
+        <!-- Obstacle 4: Furniture Barrier / Low Wall (Behind User) -->
+        <a-entity id="obs-wall-back" class="safespace-obstacle" position="0 0 3.0" data-name="Safety Barrier Wall" data-radius="0.7" data-type="static">
+          <a-box width="2.0" height="0.8" depth="0.3" position="0 0.4 0" material="color: #1e293b; metalness: 0.6; roughness: 0.4;"></a-box>
+          <a-box width="2.02" height="0.06" depth="0.32" position="0 0.78 0" material="color: #00f0ff; emissive: #00f0ff; emissiveIntensity: 0.6;"></a-box>
+          <!-- 3D Billboard -->
+          <a-entity class="obstacle-beacon" position="0 1.1 0">
+            <a-plane width="0.9" height="0.25" material="color: #0b111e; opacity: 0.85; transparent: true;"></a-plane>
+            <a-text class="beacon-label" value="BARRIER PARTITION" align="center" position="0 0.04 0.02" scale="0.22 0.22 0.22" color="#00f0ff"></a-text>
+            <a-text class="beacon-dist" value="3.0m" align="center" position="0 -0.05 0.02" scale="0.2 0.2 0.2" color="#38bdf8"></a-text>
+          </a-entity>
+        </a-entity>
+
+      </a-entity>
+
+      <!-- Testing Room Environment Walls and Lighting Atmosphere -->
+      <a-cylinder position="0 6 0" radius="16" height="12" open-ended="true" side="back" material="color: #050811; roughness: 0.9; metalness: 0.1;"></a-cylinder>
+      <a-torus position="0 11.5 0" radius="15.8" radius-tubular="0.2" rotation="90 0 0" material="color: #00f0ff; emissive: #00f0ff; emissiveIntensity: 0.4;"></a-torus>
+    </a-scene>
+  </div>
+
+  <!-- 2D Cyber UI Overlay -->
+  <div id="ui-overlay">
+    
+    <!-- Top Bar: Branding & Telemetry Status -->
+    <header class="top-bar">
+      <div class="brand-pill interactive-ui">
+        <div class="brand-title">
+          SafeSpace VR <span class="badge-pro">Quest 3S Ready</span>
+        </div>
+        <div class="brand-tagline">“See Beyond VR. Stay Safe in Reality.”</div>
+        <div class="sensor-truth-badge" id="sensor-mode-indicator">
+          <span class="pulse-dot"></span>
+          <span>SIMULATION MODE (WebXR Sensor Layer)</span>
+        </div>
+      </div>
+
+      <div class="telemetry-container">
+        <!-- Safety Alert Status Box -->
+        <div class="hud-box status-safe interactive-ui" id="hud-status-box">
+          <div class="hud-label">Safety Status</div>
+          <div class="hud-value">
+            <span class="status-badge-text badge-safe" id="safety-level-text">SAFE</span>
+          </div>
+        </div>
+
+        <!-- Nearest Distance Box -->
+        <div class="hud-box interactive-ui" id="hud-distance-box">
+          <div class="hud-label">Nearest Hazard</div>
+          <div class="hud-value" id="nearest-dist-display">
+            <span style="color: var(--neon-cyan);">--.- m</span>
+          </div>
+        </div>
+
+        <!-- Boundary Status Box -->
+        <div class="hud-box interactive-ui" id="hud-boundary-box">
+          <div class="hud-label">Boundary Zone</div>
+          <div class="hud-value" id="boundary-status-display" style="font-size: 0.9rem; color: var(--neon-green);">
+            INSIDE (SAFE)
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- Top Directional Indicator Banner -->
+    <div class="directional-banner interactive-ui" id="direction-banner">
+      <div class="direction-arrow-icon" id="direction-arrow">↑</div>
+      <div class="direction-info">
+        <div class="direction-title" id="direction-title-text">FRONT (AHEAD)</div>
+        <div class="direction-sub" id="direction-sub-text">Autonomous Hazard Rover · 4.5 m away</div>
+      </div>
+    </div>
+
+    <!-- Interactive Demonstration Step Banner -->
+    <div id="demo-banner" class="interactive-ui">
+      <div class="demo-header">
+        <div class="demo-step-title" id="demo-step-badge">
+          <span>🎬 DEMO STEP 1/7</span>
+          <span id="demo-step-name">Safe Baseline</span>
+        </div>
+        <button class="btn-cyber danger-btn" style="padding: 4px 10px; font-size: 0.75rem;" onclick="SafeSpaceApp.stopDemo()">Exit Demo</button>
+      </div>
+      <div class="demo-step-desc" id="demo-step-instruction">
+        The player is currently standing in the center of the calibrated 3.2m safe zone. No nearby obstacles. Status is SAFE.
+      </div>
+      <div class="demo-progress-bar">
+        <div class="demo-progress-fill" id="demo-progress-bar-fill"></div>
+      </div>
+      <div class="demo-actions">
+        <button class="btn-cyber" id="demo-prev-btn" style="padding: 6px 14px; font-size: 0.8rem;" onclick="SafeSpaceApp.prevDemoStep()">◀ Previous</button>
+        <button class="btn-cyber primary" id="demo-next-btn" style="padding: 6px 16px; font-size: 0.8rem;" onclick="SafeSpaceApp.nextDemoStep()">Next Step ▶</button>
+      </div>
+    </div>
+
+    <!-- Bottom Bar: Radar Map & Action Controls -->
+    <footer class="bottom-bar">
+      <!-- 2D Real-Time Proximity Mini-Radar -->
+      <div class="radar-card interactive-ui">
+        <div class="radar-title">
+          <span>360° Safety Radar</span>
+          <span id="radar-player-coords">0.0, 0.0</span>
+        </div>
+        <canvas id="radar-canvas" width="140" height="140"></canvas>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="action-button-group interactive-ui">
+        <button class="btn-cyber primary" id="btn-enter-vr" onclick="SafeSpaceApp.enterVR()">
+          🥽 ENTER VR
+        </button>
+        <button class="btn-cyber" id="btn-start-demo" onclick="SafeSpaceApp.startDemo()">
+          🎬 START DEMO
+        </button>
+        <button class="btn-cyber" id="btn-open-settings" onclick="SafeSpaceApp.openModal('settings-modal')">
+          ⚙️ SETTINGS
+        </button>
+        <button class="btn-cyber" id="btn-open-calibrate" onclick="SafeSpaceApp.openModal('calibrate-modal')">
+          🎯 CALIBRATE
+        </button>
+        <button class="btn-cyber" id="btn-open-spawn" onclick="SafeSpaceApp.openModal('spawn-modal')">
+          ➕ SPAWN HAZARDS
+        </button>
+        <button class="btn-cyber" id="btn-open-help" onclick="SafeSpaceApp.openModal('help-modal')">
+          📖 HELP
+        </button>
+      </div>
+
+      <!-- Desktop Controls Helper Legend -->
+      <div class="controls-legend interactive-ui">
+        <div><span class="key-badge">W</span><span class="key-badge">A</span><span class="key-badge">S</span><span class="key-badge">D</span> Move</div>
+        <div><span class="key-badge">Mouse</span> Look</div>
+        <div><span class="key-badge">Shift</span> Sprint</div>
+        <div><span class="key-badge">Space</span> Voice Test</div>
+      </div>
+    </footer>
+  </div>
+
+  <!-- Startup Screen / Hero Modal -->
+  <div id="startup-screen">
+    <div class="startup-card">
+      <div class="startup-logo-icon">🛡️</div>
+      <h1 class="startup-title">SafeSpace VR</h1>
+      <div class="startup-subtitle">Intelligent Boundary & Obstacle Alert System</div>
+      <p class="startup-tagline">
+        An intelligent, multi-tier safety layer for WebXR and Meta Quest 3S. Actively scans physical/virtual surroundings, computes proximity vectors, provides 3D spatial cues, and delivers AI-synthesized voice warnings.
+      </p>
+
+      <div class="disclaimer-box">
+        <strong>⚠️ SAFETY PROTOCOL & DEMONSTRATION DISCLAIMER</strong>
+        This application is an advanced WebXR safety research prototype. WebXR browser APIs do not have direct raw camera feed access on consumer headsets. This system simulates intelligent obstacle proximity and boundary enforcement using spatial tracking, raycasting, and virtual bounds. It is designed to complement, not replace, Meta Quest Guardian or real-world supervision.
+      </div>
+
+      <div class="startup-actions">
+        <button class="btn-cyber primary" style="font-size: 1.05rem; padding: 14px 28px;" onclick="SafeSpaceApp.dismissStartup(true)">
+          🥽 ENTER VR MODE
+        </button>
+        <button class="btn-cyber" style="font-size: 1.05rem; padding: 14px 28px;" onclick="SafeSpaceApp.dismissStartup(false, true)">
+          🎬 START GUIDED DEMO
+        </button>
+        <button class="btn-cyber" style="font-size: 1.05rem; padding: 14px 24px;" onclick="SafeSpaceApp.dismissStartup(false, false)">
+          🖥️ DESKTOP EXPLORATION
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Safety Settings -->
+  <div id="settings-modal" class="modal-backdrop" onclick="SafeSpaceApp.closeModalOnBackdrop(event, 'settings-modal')">
+    <div class="modal-window">
+      <div class="modal-header">
+        <h2 class="modal-title">⚙️ Safety System Settings</h2>
+        <button class="modal-close-btn" onclick="SafeSpaceApp.closeModal('settings-modal')">✕</button>
+      </div>
+
+      <div class="setting-row">
+        <div class="setting-info">
+          <div class="setting-title">Voice Alert System (Speech Synthesis)</div>
+          <div class="setting-desc">Spoken audio announcements for Caution, Warning, and Danger.</div>
+        </div>
+        <div class="setting-control">
+          <label class="toggle-switch">
+            <input type="checkbox" id="setting-voice-toggle" checked onchange="SafeSpaceApp.updateSettings()">
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+      </div>
+
+      <div class="setting-row">
+        <div class="setting-info">
+          <div class="setting-title">Procedural Sound FX (Web Audio API)</div>
+          <div class="setting-desc">Sonar pings, warning chirps, and emergency sirens.</div>
+        </div>
+        <div class="setting-control">
+          <label class="toggle-switch">
+            <input type="checkbox" id="setting-sfx-toggle" checked onchange="SafeSpaceApp.updateSettings()">
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+      </div>
+
+      <div class="setting-row">
+        <div class="setting-info">
+          <div class="setting-title">Haptic Controller Vibration</div>
+          <div class="setting-desc">Vibrate Meta Quest 3S controllers when crossing safety thresholds.</div>
+        </div>
+        <div class="setting-control">
+          <label class="toggle-switch">
+            <input type="checkbox" id="setting-haptics-toggle" checked onchange="SafeSpaceApp.updateSettings()">
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+      </div>
+
+      <div class="setting-row">
+        <div class="setting-info">
+          <div class="setting-title">Caution Threshold Distance</div>
+          <div class="setting-desc">Distance where Caution alert (yellow) triggers.</div>
+        </div>
+        <div class="setting-control">
+          <input type="range" class="cyber-slider" id="setting-dist-caution" min="1.8" max="4.0" step="0.1" value="2.4" oninput="SafeSpaceApp.updateSettings()">
+          <span class="slider-val" id="val-dist-caution">2.4m</span>
+        </div>
+      </div>
+
+      <div class="setting-row">
+        <div class="setting-info">
+          <div class="setting-title">Warning Threshold Distance</div>
+          <div class="setting-desc">Distance where Warning alert (orange) triggers.</div>
+        </div>
+        <div class="setting-control">
+          <input type="range" class="cyber-slider" id="setting-dist-warning" min="1.0" max="2.2" step="0.1" value="1.5" oninput="SafeSpaceApp.updateSettings()">
+          <span class="slider-val" id="val-dist-warning">1.5m</span>
+        </div>
+      </div>
+
+      <div class="setting-row">
+        <div class="setting-info">
+          <div class="setting-title">Danger Threshold Distance</div>
+          <div class="setting-desc">Critical proximity distance where Emergency alert (red) triggers.</div>
+        </div>
+        <div class="setting-control">
+          <input type="range" class="cyber-slider" id="setting-dist-danger" min="0.3" max="1.0" step="0.05" value="0.75" oninput="SafeSpaceApp.updateSettings()">
+          <span class="slider-val" id="val-dist-danger">0.75m</span>
+        </div>
+      </div>
+
+      <div class="setting-row">
+        <div class="setting-info">
+          <div class="setting-title">Safe Zone Boundary Radius</div>
+          <div class="setting-desc">Virtual play-area safe radius from center origin.</div>
+        </div>
+        <div class="setting-control">
+          <input type="range" class="cyber-slider" id="setting-boundary-radius" min="1.5" max="6.0" step="0.1" value="3.2" oninput="SafeSpaceApp.updateSettings()">
+          <span class="slider-val" id="val-boundary-radius">3.2m</span>
+        </div>
+      </div>
+
+      <div class="setting-row">
+        <div class="setting-info">
+          <div class="setting-title">Voice Alert Cooldown</div>
+          <div class="setting-desc">Minimum interval between identical voice alert announcements.</div>
+        </div>
+        <div class="setting-control">
+          <input type="range" class="cyber-slider" id="setting-voice-cooldown" min="2" max="10" step="0.5" value="4.5" oninput="SafeSpaceApp.updateSettings()">
+          <span class="slider-val" id="val-voice-cooldown">4.5s</span>
+        </div>
+      </div>
+
+      <div style="display: flex; justify-content: flex-end; margin-top: 10px;">
+        <button class="btn-cyber primary" onclick="SafeSpaceApp.closeModal('settings-modal')">Save & Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Calibrate Safe Zone -->
+  <div id="calibrate-modal" class="modal-backdrop" onclick="SafeSpaceApp.closeModalOnBackdrop(event, 'calibrate-modal')">
+    <div class="modal-window">
+      <div class="modal-header">
+        <h2 class="modal-title">🎯 Safe Zone Calibration</h2>
+        <button class="modal-close-btn" onclick="SafeSpaceApp.closeModal('calibrate-modal')">✕</button>
+      </div>
+
+      <p style="font-size: 0.88rem; color: #94a3b8; line-height: 1.5;">
+        Calibrate your safe physical play boundary to match your real-world room dimensions. Standing in the center of your physical room and clicking "Re-Center Origin" sets your position as (0, 0, 0).
+      </p>
+
+      <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin: 10px 0;">
+        <button class="btn-cyber" onclick="SafeSpaceApp.setBoundaryPreset(2.0)">
+          📦 Small Room<br><span style="font-size: 0.75rem; color: var(--neon-cyan);">2.0m Radius</span>
+        </button>
+        <button class="btn-cyber primary" onclick="SafeSpaceApp.setBoundaryPreset(3.2)">
+          🏠 Standard Living<br><span style="font-size: 0.75rem; color: #fff;">3.2m Radius</span>
+        </button>
+        <button class="btn-cyber" onclick="SafeSpaceApp.setBoundaryPreset(4.5)">
+          🏟️ Large Hall<br><span style="font-size: 0.75rem; color: var(--neon-cyan);">4.5m Radius</span>
+        </button>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 10px;">
+        <button class="btn-cyber" style="width: 100%; justify-content: center; padding: 12px;" onclick="SafeSpaceApp.recenterPlayerOrigin()">
+          📍 RE-CENTER ORIGIN (Set Current Position as Safe Center)
+        </button>
+        <button class="btn-cyber danger-btn" style="width: 100%; justify-content: center; padding: 10px;" onclick="SafeSpaceApp.resetDefaultBounds()">
+          🔄 Reset to Default 3.2m Boundary
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Spawn / Modify Hazards -->
+  <div id="spawn-modal" class="modal-backdrop" onclick="SafeSpaceApp.closeModalOnBackdrop(event, 'spawn-modal')">
+    <div class="modal-window">
+      <div class="modal-header">
+        <h2 class="modal-title">➕ Spawn Simulation Hazards</h2>
+        <button class="modal-close-btn" onclick="SafeSpaceApp.closeModal('spawn-modal')">✕</button>
+      </div>
+
+      <p style="font-size: 0.88rem; color: #94a3b8; line-height: 1.5;">
+        Inject simulated physical hazards into the VR testing environment to evaluate proximity detection, directional indicators, and speech warnings in real time.
+      </p>
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 12px 0;">
+        <button class="btn-cyber" onclick="SafeSpaceApp.spawnHazard('drone')">
+          🤖 Spawn Autonomous Rover
+        </button>
+        <button class="btn-cyber" onclick="SafeSpaceApp.spawnHazard('crate')">
+          📦 Spawn Cargo Crate
+        </button>
+        <button class="btn-cyber" onclick="SafeSpaceApp.spawnHazard('pylon')">
+          🗼 Spawn Safety Pylon
+        </button>
+        <button class="btn-cyber" onclick="SafeSpaceApp.spawnHazard('barrier')">
+          🚧 Spawn Safety Barrier
+        </button>
+      </div>
+
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 14px; padding-top: 12px; border-top: 1px solid rgba(255, 255, 255, 0.1);">
+        <button class="btn-cyber danger-btn" onclick="SafeSpaceApp.clearDynamicObstacles()">
+          🗑️ Clear Added Obstacles
+        </button>
+        <button class="btn-cyber primary" onclick="SafeSpaceApp.closeModal('spawn-modal')">
+          Done
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: System Help & Protocols -->
+  <div id="help-modal" class="modal-backdrop" onclick="SafeSpaceApp.closeModalOnBackdrop(event, 'help-modal')">
+    <div class="modal-window">
+      <div class="modal-header">
+        <h2 class="modal-title">📖 SafeSpace VR Protocols & Help</h2>
+        <button class="modal-close-btn" onclick="SafeSpaceApp.closeModal('help-modal')">✕</button>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 14px; font-size: 0.86rem; color: #cbd5e1; line-height: 1.55;">
+        <div>
+          <h3 style="color: var(--neon-cyan); margin-bottom: 4px; font-size: 0.95rem;">Alert Level System</h3>
+          <ul style="margin-left: 20px; display: flex; flex-direction: column; gap: 4px;">
+            <li><strong style="color: var(--neon-green);">SAFE:</strong> No obstacles within caution threshold (> 2.4m) and inside boundary.</li>
+            <li><strong style="color: var(--neon-yellow);">CAUTION:</strong> Obstacle detected within 2.4m - 1.5m. Gentle alert and directional cue.</li>
+            <li><strong style="color: var(--neon-orange);">WARNING:</strong> Obstacle detected within 1.5m - 0.75m. Pulsing HUD, directional radar compass, double-ping audio.</li>
+            <li><strong style="color: var(--neon-red);">DANGER:</strong> Immediate obstacle collision risk (&le; 0.75m) or safe zone boundary breach. Red flashing strobe, alarm siren, urgent voice command.</li>
+          </ul>
+        </div>
+
+        <div>
+          <h3 style="color: var(--neon-cyan); margin-bottom: 4px; font-size: 0.95rem;">Meta Quest 3S Controls</h3>
+          <ul style="margin-left: 20px; display: flex; flex-direction: column; gap: 4px;">
+            <li><strong>Left Thumbstick:</strong> Smooth Locomotion (Forward, Backward, Strafe)</li>
+            <li><strong>Right Thumbstick:</strong> Snap Turning (30° increments)</li>
+            <li><strong>Trigger:</strong> Point & click VR buttons / UI interact</li>
+            <li><strong>Grip:</strong> Grab & reposition virtual obstacles in VR</li>
+            <li><strong>Controller Proximity:</strong> Hand controllers independently detect obstacle distances to prevent hand collisions while swinging.</li>
+          </ul>
+        </div>
+
+        <div>
+          <h3 style="color: var(--neon-cyan); margin-bottom: 4px; font-size: 0.95rem;">Desktop Testing Controls</h3>
+          <ul style="margin-left: 20px; display: flex; flex-direction: column; gap: 4px;">
+            <li><strong>WASD Keys:</strong> Move around the environment</li>
+            <li><strong>Mouse Click & Drag:</strong> Look around in 360°</li>
+            <li><strong>Shift Key:</strong> Hold to sprint faster</li>
+            <li><strong>Spacebar:</strong> Test voice synthesis output</li>
+          </ul>
+        </div>
+      </div>
+
+      <div style="display: flex; justify-content: flex-end; margin-top: 10px;">
+        <button class="btn-cyber primary" onclick="SafeSpaceApp.closeModal('help-modal')">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Application Logic & WebXR Safety Engine -->
+  <script>
+    /**
+     * SafeSpace VR: Intelligent Boundary & Obstacle Alert System
+     * Core Architectural Modules:
+     * 1. Audio & Procedural Sound FX Synthesizer (Web Audio API)
+     * 2. Voice Alert Manager & Speech Synthesizer (Web Speech API)
+     * 3. Spatial Proximity & Obstacle Detection Engine
+     * 4. Boundary Protection & Violation Manager
+     * 5. Multi-Tier Alert State Machine (SAFE / CAUTION / WARNING / DANGER)
+     * 6. 3D Floating VR HUD & Spatial Billboard Tracker
+     * 7. 2D Radar Canvas & Telemetry Overlay
+     * 8. Meta Quest 3S Controller & Locomotion Handler
+     * 9. Interactive 7-Step Demonstration Tour Controller
+     */
+
+    // --- PROCEDURAL AUDIO SYNTHESIZER (Web Audio API) ---
+    class SoundFXEngine {
+      constructor() {
+        this.ctx = null;
+        this.enabled = true;
+        this.lastPingTime = 0;
+        this.initAudioContext();
+      }
+
+      initAudioContext() {
+        if (!this.ctx && (window.AudioContext || window.webkitAudioContext)) {
+          const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+          this.ctx = new AudioContextClass();
+        }
+      }
+
+      ensureContext() {
+        if (this.ctx && this.ctx.state === 'suspended') {
+          this.ctx.resume();
+        }
+      }
+
+      // Gentle Sonar Blip for Caution
+      playCautionBlip() {
+        if (!this.enabled) return;
+        this.ensureContext();
+        if (!this.ctx) return;
+        try {
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(520, this.ctx.currentTime);
+          osc.frequency.exponentialRampToValueAtTime(440, this.ctx.currentTime + 0.15);
+          
+          gain.gain.setValueAtTime(0.12, this.ctx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.2);
+          
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          
+          osc.start();
+          osc.stop(this.ctx.currentTime + 0.22);
+        } catch (e) { console.warn('Audio blip error', e); }
+      }
+
+      // Urgent Double-Ping for Warning
+      playWarningPing() {
+        if (!this.enabled) return;
+        this.ensureContext();
+        if (!this.ctx) return;
+        try {
+          const now = this.ctx.currentTime;
+          [0, 0.12].forEach((offset, idx) => {
+            const osc = this.ctx.createOscillator();
+            const gain = this.ctx.createGain();
+            osc.type = 'triangle';
+            osc.frequency.setValueAtTime(idx === 0 ? 680 : 880, now + offset);
+            
+            gain.gain.setValueAtTime(0.2, now + offset);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + offset + 0.1);
+            
+            osc.connect(gain);
+            gain.connect(this.ctx.destination);
+            
+            osc.start(now + offset);
+            osc.stop(now + offset + 0.12);
+          });
+        } catch (e) { console.warn('Audio warning ping error', e); }
+      }
+
+      // Rapid Modulated Siren for Danger / Breach
+      playDangerAlarm() {
+        if (!this.enabled) return;
+        this.ensureContext();
+        if (!this.ctx) return;
+        try {
+          const now = this.ctx.currentTime;
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = 'sawtooth';
+          
+          // Siren pitch oscillation
+          osc.frequency.setValueAtTime(800, now);
+          osc.frequency.linearRampToValueAtTime(1200, now + 0.15);
+          osc.frequency.linearRampToValueAtTime(800, now + 0.3);
+          
+          gain.gain.setValueAtTime(0.25, now);
+          gain.gain.exponentialRampToValueAtTime(0.01, now + 0.32);
+          
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          
+          osc.start(now);
+          osc.stop(now + 0.33);
+        } catch (e) { console.warn('Audio danger alarm error', e); }
+      }
+    }
+
+    // --- VOICE ALERT MANAGER (Web Speech API with Intelligent Cooldown) ---
+    class VoiceAlertManager {
+      constructor() {
+        this.enabled = true;
+        this.cooldownSeconds = 4.5;
+        this.lastSpokenText = '';
+        this.lastSpokenTime = 0;
+        this.currentTier = 'SAFE';
+        this.synth = window.speechSynthesis || null;
+        this.selectedVoice = null;
+        this.initVoice();
+      }
+
+      initVoice() {
+        if (!this.synth) return;
+        const loadVoices = () => {
+          const voices = this.synth.getVoices();
+          this.selectedVoice = voices.find(v => v.lang.startsWith('en') && (v.name.includes('Google') || v.name.includes('Samantha') || v.name.includes('Natural') || v.name.includes('Daniel'))) || voices.find(v => v.lang.startsWith('en')) || voices[0];
+        };
+        loadVoices();
+        if (this.synth.onvoiceschanged !== undefined) {
+          this.synth.onvoiceschanged = loadVoices;
+        }
+      }
+
+      speak(text, priority = false, tier = 'CAUTION') {
+        if (!this.enabled || !this.synth) return;
+
+        const now = Date.now();
+        const timeSinceLast = (now - this.lastSpokenTime) / 1000;
+
+        const isTierEscalation = (tier === 'DANGER' && this.currentTier !== 'DANGER') || (tier === 'WARNING' && this.currentTier === 'SAFE');
+
+        if (!priority && !isTierEscalation) {
+          if (text === this.lastSpokenText && timeSinceLast < this.cooldownSeconds) {
+            return;
+          }
+          if (timeSinceLast < 2.5) {
+            return;
+          }
+        }
+
+        try {
+          if (priority || tier === 'DANGER') {
+            this.synth.cancel();
+          }
+
+          const utterance = new SpeechSynthesisUtterance(text);
+          if (this.selectedVoice) utterance.voice = this.selectedVoice;
+          utterance.rate = 1.05;
+          utterance.pitch = 1.0;
+          utterance.volume = 0.95;
+
+          utterance.onend = () => {
+            this.lastSpokenText = text;
+            this.lastSpokenTime = Date.now();
+            this.currentTier = tier;
+          };
+
+          this.synth.speak(utterance);
+          this.lastSpokenText = text;
+          this.lastSpokenTime = now;
+          this.currentTier = tier;
+        } catch (e) {
+          console.warn('Speech synthesis error', e);
+        }
+      }
+    }
+
+    // --- MAIN SAFESPACE VR APPLICATION ORCHESTRATOR ---
+    const SafeSpaceApp = {
+      // Configuration & Settings State
+      config: {
+        cautionDist: 2.4,
+        warningDist: 1.5,
+        dangerDist: 0.75,
+        boundaryRadius: 3.2,
+        voiceEnabled: true,
+        sfxEnabled: true,
+        hapticsEnabled: true,
+        voiceCooldown: 4.5
+      },
+
+      // Runtime State
+      currentAlertLevel: 'SAFE', // SAFE | CAUTION | WARNING | DANGER
+      nearestObstacle: null,
+      nearestDistance: 999,
+      nearestDirection: { sector: 'FRONT', arrow: '↑', angle: 0, label: 'FRONT (AHEAD)' },
+      boundaryStatus: { inside: true, distFromCenter: 0, distToPerimeter: 3.2, breached: false },
+      playerOriginOffset: { x: 0, z: 0 },
+      isVRActive: false,
+
+      // Demo Mode State
+      demoActive: false,
+      demoStep: 0,
+      demoTimer: null,
+      demoTotalSteps: 7,
+
+      // Subsystems
+      audio: null,
+      voice: null,
+      obstacles: [],
+
+      init() {
+        if (this.isInitialized) return;
+        this.isInitialized = true;
+        console.log('Initializing SafeSpace VR Engine...');
+        this.audio = new SoundFXEngine();
+        this.voice = new VoiceAlertManager();
+
+        this.setupKeyboardShortcuts();
+        this.initRadarCanvas();
+        this.registerObstaclesFromScene();
+
+        requestAnimationFrame(this.renderLoop.bind(this));
+      },
+
+      setupKeyboardShortcuts() {
+        window.addEventListener('keydown', (e) => {
+          if (e.code === 'Space') {
+            this.voice.speak('SafeSpace safety monitoring online. All systems nominal.', true, 'SAFE');
+          }
+        });
+
+        const sceneEl = document.querySelector('a-scene');
+        if (sceneEl) {
+          sceneEl.addEventListener('enter-vr', () => {
+            this.isVRActive = true;
+            document.body.classList.add('vr-mode-active');
+            this.voice.speak('SafeSpace VR mode activated. Safe boundary active.', true, 'SAFE');
+          });
+          sceneEl.addEventListener('exit-vr', () => {
+            this.isVRActive = false;
+            document.body.classList.remove('vr-mode-active');
+          });
+        }
+      },
+
+      registerObstaclesFromScene() {
+        this.obstacles = [];
+        const obsElements = document.querySelectorAll('.safespace-obstacle');
+        obsElements.forEach((el, index) => {
+          const name = el.getAttribute('data-name') || `Obstacle #${index + 1}`;
+          const radius = parseFloat(el.getAttribute('data-radius')) || 0.5;
+          const type = el.getAttribute('data-type') || 'static';
+          const posX = (el.object3D && el.object3D.position) ? el.object3D.position.x : 0;
+          const posY = (el.object3D && el.object3D.position) ? el.object3D.position.y : 0;
+          const posZ = (el.object3D && el.object3D.position) ? el.object3D.position.z : 0;
+          this.obstacles.push({
+            id: el.id || `obs-${index}`,
+            element: el,
+            name: name,
+            radius: radius,
+            type: type,
+            pos: { x: posX, y: posY, z: posZ },
+            initialPos: { x: posX, y: posY, z: posZ }
+          });
+        });
+      },
+
+      // --- 360-DEGREE SPATIAL DISTANCE & DIRECTION MATH ENGINE ---
+      updateSpatialTracking() {
+        const headset = document.querySelector('#headset-cam');
+        if (!headset || !headset.object3D) return;
+
+        // Player Head World Position
+        const headWorldPos = new THREE.Vector3();
+        headset.object3D.getWorldPosition(headWorldPos);
+
+        // Player Forward View Vector (Yaw Heading)
+        const headDirection = new THREE.Vector3();
+        headset.object3D.getWorldDirection(headDirection);
+        headDirection.y = 0;
+        headDirection.normalize();
+
+        // Check Controller Positions (Hand Proximity Safeguard)
+        const leftCtrl = document.querySelector('#left-controller');
+        const rightCtrl = document.querySelector('#right-controller');
+        const leftHandPos = new THREE.Vector3();
+        const rightHandPos = new THREE.Vector3();
+        if (leftCtrl && leftCtrl.object3D) leftCtrl.object3D.getWorldPosition(leftHandPos);
+        if (rightCtrl && rightCtrl.object3D) rightCtrl.object3D.getWorldPosition(rightHandPos);
+
+        // 1. Boundary Zone Check
+        const distFromCenter = Math.hypot(headWorldPos.x - this.playerOriginOffset.x, headWorldPos.z - this.playerOriginOffset.z);
+        const distToPerimeter = this.config.boundaryRadius - distFromCenter;
+        const isBoundaryBreached = distFromCenter >= this.config.boundaryRadius;
+        const isBoundaryCaution = distToPerimeter <= 0.8 && !isBoundaryBreached;
+
+        this.boundaryStatus = {
+          inside: !isBoundaryBreached,
+          distFromCenter: distFromCenter,
+          distToPerimeter: distToPerimeter,
+          breached: isBoundaryBreached,
+          approachingPerimeter: isBoundaryCaution
+        };
+
+        // 2. Obstacle Proximity & Direction Scanning
+        let minDistance = 999;
+        let closestObs = null;
+        let closestSectorInfo = { sector: 'FRONT', arrow: '↑', angle: 0, label: 'FRONT (CLEAR)' };
+
+        this.obstacles.forEach(obs => {
+          if (!obs.element || !obs.element.object3D) return;
+
+          const obsWorldPos = new THREE.Vector3();
+          obs.element.object3D.getWorldPosition(obsWorldPos);
+          obs.pos = { x: obsWorldPos.x, y: obsWorldPos.y, z: obsWorldPos.z };
+
+          const distHeadToCenter = Math.hypot(headWorldPos.x - obsWorldPos.x, headWorldPos.z - obsWorldPos.z);
+          const effectiveDistHead = Math.max(0, distHeadToCenter - obs.radius);
+
+          let effectiveDistLeft = 999;
+          let effectiveDistRight = 999;
+          if (leftCtrl && leftCtrl.object3D && leftHandPos.lengthSq() > 0.01) {
+            effectiveDistLeft = Math.max(0, Math.hypot(leftHandPos.x - obsWorldPos.x, leftHandPos.z - obsWorldPos.z) - obs.radius);
+          }
+          if (rightCtrl && rightCtrl.object3D && rightHandPos.lengthSq() > 0.01) {
+            effectiveDistRight = Math.max(0, Math.hypot(rightHandPos.x - obsWorldPos.x, rightHandPos.z - obsWorldPos.z) - obs.radius);
+          }
+
+          const currentClosestDist = Math.min(effectiveDistHead, effectiveDistLeft, effectiveDistRight);
+          obs.currentDistance = currentClosestDist;
+
+          const beaconDistText = obs.element.querySelector('.beacon-dist');
+          if (beaconDistText) {
+            beaconDistText.setAttribute('value', `${currentClosestDist.toFixed(1)}m`);
+          }
+
+          if (currentClosestDist < minDistance) {
+            minDistance = currentClosestDist;
+            closestObs = obs;
+
+            const toObstacle = new THREE.Vector3(obsWorldPos.x - headWorldPos.x, 0, obsWorldPos.z - headWorldPos.z).normalize();
+            const dot = headDirection.dot(toObstacle);
+            const crossY = headDirection.x * toObstacle.z - headDirection.z * toObstacle.x;
+            let angleDeg = Math.atan2(-crossY, -dot) * (180 / Math.PI);
+
+            closestSectorInfo = this.calculate8SectorDirection(angleDeg);
+          }
+        });
+
+        this.nearestDistance = minDistance;
+        this.nearestObstacle = closestObs;
+        this.nearestDirection = closestSectorInfo;
+
+        this.evaluateAlertState(minDistance, closestObs, closestSectorInfo, this.boundaryStatus);
+      },
+
+      calculate8SectorDirection(angleDeg) {
+        while (angleDeg > 180) angleDeg -= 360;
+        while (angleDeg < -180) angleDeg += 360;
+
+        if (angleDeg >= -22.5 && angleDeg < 22.5) {
+          return { sector: 'FRONT', arrow: '↑', angle: angleDeg, label: 'FRONT (AHEAD)' };
+        } else if (angleDeg >= 22.5 && angleDeg < 67.5) {
+          return { sector: 'FRONT_RIGHT', arrow: '↗', angle: angleDeg, label: 'FRONT-RIGHT' };
+        } else if (angleDeg >= 67.5 && angleDeg < 112.5) {
+          return { sector: 'RIGHT', arrow: '→', angle: angleDeg, label: 'RIGHT' };
+        } else if (angleDeg >= 112.5 && angleDeg < 157.5) {
+          return { sector: 'BACK_RIGHT', arrow: '↘', angle: angleDeg, label: 'BACK-RIGHT' };
+        } else if (angleDeg >= 157.5 || angleDeg < -157.5) {
+          return { sector: 'BACK', arrow: '↓', angle: angleDeg, label: 'BEHIND' };
+        } else if (angleDeg >= -157.5 && angleDeg < -112.5) {
+          return { sector: 'BACK_LEFT', arrow: '↙', angle: angleDeg, label: 'BACK-LEFT' };
+        } else if (angleDeg >= -112.5 && angleDeg < -67.5) {
+          return { sector: 'LEFT', arrow: '←', angle: angleDeg, label: 'LEFT' };
+        } else {
+          return { sector: 'FRONT_LEFT', arrow: '↖', angle: angleDeg, label: 'FRONT-LEFT' };
+        }
+      },
+
+      // --- MULTI-TIER ALERT STATE MACHINE ---
+      evaluateAlertState(dist, obs, dir, boundary) {
+        let newLevel = 'SAFE';
+
+        if (boundary.breached) {
+          newLevel = 'DANGER';
+        } else if (dist <= this.config.dangerDist) {
+          newLevel = 'DANGER';
+        } else if (dist <= this.config.warningDist) {
+          newLevel = 'WARNING';
+        } else if (dist <= this.config.cautionDist || boundary.approachingPerimeter) {
+          newLevel = 'CAUTION';
+        } else {
+          newLevel = 'SAFE';
+        }
+
+        const prevLevel = this.currentAlertLevel;
+        this.currentAlertLevel = newLevel;
+
+        if (newLevel !== prevLevel) {
+          this.handleStateTransition(prevLevel, newLevel, obs, dir, boundary);
+        } else {
+          this.handlePeriodicAlerts(newLevel, dist, dir);
+        }
+
+        this.updateHUDAndVisuals(newLevel, dist, obs, dir, boundary);
+      },
+
+      handleStateTransition(oldTier, newTier, obs, dir, boundary) {
+        this.triggerHapticPulse(newTier);
+
+        if (boundary.breached) {
+          this.audio.playDangerAlarm();
+          this.voice.speak('Danger. Safe boundary breached. Return to safe zone immediately.', true, 'DANGER');
+          return;
+        }
+
+        if (newTier === 'DANGER') {
+          this.audio.playDangerAlarm();
+          this.voice.speak(`Danger. Stop. Obstacle very close ${dir.label}.`, true, 'DANGER');
+        } else if (newTier === 'WARNING') {
+          this.audio.playWarningPing();
+          this.voice.speak(`Warning. Obstacle ${dir.label}.`, false, 'WARNING');
+        } else if (newTier === 'CAUTION') {
+          this.audio.playCautionBlip();
+          if (boundary.approachingPerimeter) {
+            this.voice.speak('Caution. Approaching safe boundary perimeter.', false, 'CAUTION');
+          } else {
+            this.voice.speak(`Caution. Obstacle detected ${dir.label}.`, false, 'CAUTION');
+          }
+        }
+      },
+
+      handlePeriodicAlerts(tier, dist, dir) {
+        const now = Date.now();
+        if (!this.lastPeriodicPing) this.lastPeriodicPing = 0;
+
+        if (tier === 'DANGER' && now - this.lastPeriodicPing > 900) {
+          this.audio.playDangerAlarm();
+          this.triggerHapticPulse('DANGER');
+          this.lastPeriodicPing = now;
+        } else if (tier === 'WARNING' && now - this.lastPeriodicPing > 2000) {
+          this.audio.playWarningPing();
+          this.lastPeriodicPing = now;
+        }
+      },
+
+      triggerHapticPulse(tier) {
+        if (!this.config.hapticsEnabled) return;
+        try {
+          const gamepads = navigator.getGamepads ? navigator.getGamepads() : [];
+          for (let i = 0; i < gamepads.length; i++) {
+            const gp = gamepads[i];
+            if (gp && gp.hapticActuators && gp.hapticActuators.length > 0) {
+              const intensity = tier === 'DANGER' ? 1.0 : tier === 'WARNING' ? 0.65 : tier === 'CAUTION' ? 0.35 : 0;
+              const duration = tier === 'DANGER' ? 250 : tier === 'WARNING' ? 120 : 60;
+              if (intensity > 0) {
+                gp.hapticActuators[0].pulse(intensity, duration);
+              }
+            }
+          }
+        } catch (e) { /* ignore gamepad haptic errors */ }
+      },
+
+      // --- VISUAL & VR HUD UPDATES ---
+      updateHUDAndVisuals(tier, dist, obs, dir, boundary) {
+        // 1. Update 2D Screen Vignette
+        const vignette = document.querySelector('#alert-vignette');
+        if (vignette) {
+          vignette.className = '';
+          if (tier === 'CAUTION') vignette.classList.add('caution');
+          else if (tier === 'WARNING') vignette.classList.add('warning');
+          else if (tier === 'DANGER') vignette.classList.add('danger');
+        }
+
+        // 2. Update 2D Status Header Badges
+        const hudBox = document.querySelector('#hud-status-box');
+        const statusBadge = document.querySelector('#safety-level-text');
+        if (statusBadge && hudBox) {
+          statusBadge.textContent = tier;
+          statusBadge.className = `status-badge-text badge-${tier.toLowerCase()}`;
+          hudBox.className = `hud-box status-${tier.toLowerCase()} interactive-ui`;
+        }
+
+        const distDisplay = document.querySelector('#nearest-dist-display');
+        if (distDisplay) {
+          if (dist < 900) {
+            distDisplay.innerHTML = `<span style="color: ${tier === 'DANGER' ? 'var(--neon-red)' : tier === 'WARNING' ? 'var(--neon-orange)' : tier === 'CAUTION' ? 'var(--neon-yellow)' : 'var(--neon-cyan)'}; font-weight: 800;">${dist.toFixed(1)} m</span>`;
+          } else {
+            distDisplay.innerHTML = `<span style="color: var(--neon-cyan);">SAFE (> 3.0m)</span>`;
+          }
+        }
+
+        const boundaryDisplay = document.querySelector('#boundary-status-display');
+        if (boundaryDisplay) {
+          if (boundary.breached) {
+            boundaryDisplay.textContent = 'BREACHED (OUTSIDE)';
+            boundaryDisplay.style.color = 'var(--neon-red)';
+          } else if (boundary.approachingPerimeter) {
+            boundaryDisplay.textContent = 'NEAR PERIMETER';
+            boundaryDisplay.style.color = 'var(--neon-yellow)';
+          } else {
+            boundaryDisplay.textContent = 'INSIDE (SAFE)';
+            boundaryDisplay.style.color = 'var(--neon-green)';
+          }
+        }
+
+        // 3. Directional Banner
+        const dirArrow = document.querySelector('#direction-arrow');
+        const dirTitle = document.querySelector('#direction-title-text');
+        const dirSub = document.querySelector('#direction-sub-text');
+        if (dirArrow && dirTitle && dirSub) {
+          if (boundary.breached) {
+            dirArrow.textContent = '↩';
+            dirArrow.style.color = 'var(--neon-red)';
+            dirTitle.textContent = 'RETURN TO SAFE ZONE';
+            dirSub.textContent = `Turn around to re-enter calibrated perimeter`;
+          } else if (obs && dist < this.config.cautionDist) {
+            dirArrow.textContent = dir.arrow;
+            dirArrow.style.color = tier === 'DANGER' ? 'var(--neon-red)' : tier === 'WARNING' ? 'var(--neon-orange)' : 'var(--neon-yellow)';
+            dirTitle.textContent = dir.label;
+            dirSub.textContent = `${obs.name} · ${dist.toFixed(1)} m away`;
+          } else {
+            dirArrow.textContent = '🛡️';
+            dirArrow.style.color = 'var(--neon-green)';
+            dirTitle.textContent = 'SURROUNDINGS SAFE';
+            dirSub.textContent = 'No imminent obstacle proximity detected';
+          }
+        }
+
+        // 4. Update In-VR 3D Floating HUD Entity
+        const vrStatusBg = document.querySelector('#vr-hud-status-bg');
+        const vrStatusText = document.querySelector('#vr-hud-status-text');
+        const vrDirText = document.querySelector('#vr-hud-direction-text');
+        const vrDistText = document.querySelector('#vr-hud-distance-text');
+        const vrBoundText = document.querySelector('#vr-hud-boundary-text');
+
+        if (vrStatusBg && vrStatusText) {
+          const colorHex = tier === 'DANGER' ? '#ef4444' : tier === 'WARNING' ? '#f97316' : tier === 'CAUTION' ? '#f59e0b' : '#10b981';
+          vrStatusBg.setAttribute('material', `color: ${colorHex}; emissive: ${colorHex}; emissiveIntensity: 0.5;`);
+          vrStatusText.setAttribute('value', tier);
+
+          if (vrDirText) {
+            vrDirText.setAttribute('value', boundary.breached ? 'DIR: ↩ RETURN TO CENTER' : `DIR: ${dir.arrow} ${dir.label}`);
+          }
+          if (vrDistText) {
+            vrDistText.setAttribute('value', dist < 900 ? `DIST: ${dist.toFixed(1)} m` : `DIST: SAFE (> ${this.config.cautionDist}m)`);
+          }
+          if (vrBoundText) {
+            vrBoundText.setAttribute('value', boundary.breached ? 'BOUNDARY: BREACHED - RETURN!' : 'BOUNDARY: IN SAFE ZONE');
+            vrBoundText.setAttribute('color', boundary.breached ? '#ef4444' : '#10b981');
+          }
+        }
+
+        // 5. Update Dynamic Boundary Laser Curtain Material Glow
+        const laserWall = document.querySelector('#boundary-laser-curtain');
+        if (laserWall) {
+          if (boundary.breached) {
+            laserWall.setAttribute('material', 'color: #ef4444; emissive: #ef4444; emissiveIntensity: 0.8; opacity: 0.65;');
+          } else if (boundary.approachingPerimeter) {
+            laserWall.setAttribute('material', 'color: #f59e0b; emissive: #f59e0b; emissiveIntensity: 0.5; opacity: 0.35;');
+          } else {
+            laserWall.setAttribute('material', 'color: #00f0ff; emissive: #00f0ff; emissiveIntensity: 0.2; opacity: 0.12;');
+          }
+        }
+
+        // 6. Floor Guide Arrow
+        const floorArrow = document.querySelector('#floor-guide-arrow');
+        if (floorArrow) {
+          if (boundary.breached) {
+            floorArrow.setAttribute('visible', 'true');
+            const headset = document.querySelector('#headset-cam');
+            if (headset && headset.object3D) {
+              const headWorldPos = new THREE.Vector3();
+              headset.object3D.getWorldPosition(headWorldPos);
+              const relX = headWorldPos.x - this.playerOriginOffset.x;
+              const relZ = headWorldPos.z - this.playerOriginOffset.z;
+              const angleToCenter = Math.atan2(-relX, -relZ);
+              floorArrow.setAttribute('rotation', `-90 0 ${angleToCenter * (180 / Math.PI)}`);
+            }
+          } else {
+            floorArrow.setAttribute('visible', 'false');
+          }
+        }
+      },
+
+      // --- 2D REAL-TIME MINI-RADAR RENDERING ---
+      initRadarCanvas() {
+        this.radarCanvas = document.querySelector('#radar-canvas');
+        if (this.radarCanvas) {
+          this.radarCtx = this.radarCanvas.getContext('2d');
+        }
+      },
+
+      drawRadar() {
+        if (!this.radarCtx || !this.radarCanvas) return;
+        const ctx = this.radarCtx;
+        const w = this.radarCanvas.width;
+        const h = this.radarCanvas.height;
+        const cx = w / 2;
+        const cy = h / 2;
+        const scale = (w / 2) / 6.0;
+
+        ctx.clearRect(0, 0, w, h);
+
+        // Grid Rings
+        ctx.strokeStyle = 'rgba(0, 240, 255, 0.15)';
+        ctx.lineWidth = 1;
+        [1.5, 3.0, 4.5].forEach(r => {
+          ctx.beginPath();
+          ctx.arc(cx, cy, r * scale, 0, Math.PI * 2);
+          ctx.stroke();
+        });
+
+        // Boundary
+        ctx.strokeStyle = this.boundaryStatus.breached ? '#ef4444' : 'rgba(0, 240, 255, 0.6)';
+        ctx.lineWidth = 2;
+        ctx.setLineDash([4, 4]);
+        ctx.beginPath();
+        ctx.arc(cx, cy, this.config.boundaryRadius * scale, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        // Crosshairs
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
+        ctx.beginPath();
+        ctx.moveTo(cx, 0); ctx.lineTo(cx, h);
+        ctx.moveTo(0, cy); ctx.lineTo(w, cy);
+        ctx.stroke();
+
+        // Player & Heading
+        const headset = document.querySelector('#headset-cam');
+        if (headset && headset.object3D) {
+          const headWorldPos = new THREE.Vector3();
+          headset.object3D.getWorldPosition(headWorldPos);
+          const px = cx + (headWorldPos.x - this.playerOriginOffset.x) * scale;
+          const py = cy + (headWorldPos.z - this.playerOriginOffset.z) * scale;
+
+          const dir = new THREE.Vector3();
+          headset.object3D.getWorldDirection(dir);
+          const headingAngle = Math.atan2(dir.z, dir.x);
+
+          ctx.fillStyle = 'rgba(0, 240, 255, 0.18)';
+          ctx.beginPath();
+          ctx.moveTo(px, py);
+          ctx.arc(px, py, 22, headingAngle - 0.4, headingAngle + 0.4);
+          ctx.closePath();
+          ctx.fill();
+
+          ctx.fillStyle = this.currentAlertLevel === 'DANGER' ? '#ef4444' : '#00f0ff';
+          ctx.beginPath();
+          ctx.arc(px, py, 4, 0, Math.PI * 2);
+          ctx.fill();
+        }
+
+        // Active Obstacles
+        this.obstacles.forEach(obs => {
+          if (!obs.pos) return;
+          const ox = cx + obs.pos.x * scale;
+          const oy = cy + obs.pos.z * scale;
+
+          let obsColor = '#00f0ff';
+          if (obs.currentDistance <= this.config.dangerDist) obsColor = '#ef4444';
+          else if (obs.currentDistance <= this.config.warningDist) obsColor = '#f97316';
+          else if (obs.currentDistance <= this.config.cautionDist) obsColor = '#f59e0b';
+
+          ctx.fillStyle = obsColor;
+          ctx.beginPath();
+          ctx.arc(ox, oy, 4.5, 0, Math.PI * 2);
+          ctx.fill();
+
+          if (this.nearestObstacle === obs && this.currentAlertLevel !== 'SAFE') {
+            ctx.strokeStyle = obsColor;
+            ctx.lineWidth = 1.5;
+            ctx.beginPath();
+            ctx.arc(ox, oy, 8, 0, Math.PI * 2);
+            ctx.stroke();
+          }
+        });
+      },
+
+      // --- AUTONOMOUS HAZARD ROVER MOVEMENT ---
+      updateAutonomousRover(deltaTime) {
+        const rover = document.querySelector('#obs-rover');
+        if (!rover) return;
+
+        const lidarHead = document.querySelector('#rover-lidar-head');
+        if (lidarHead) {
+          lidarHead.object3D.rotation.y += deltaTime * 3.0;
+        }
+
+        if (this.demoActive) return;
+
+        if (!this.roverTime) this.roverTime = 0;
+        this.roverTime += deltaTime * 0.5;
+
+        const targetZ = -4.0 + Math.sin(this.roverTime) * 1.8;
+        const targetX = Math.cos(this.roverTime * 0.7) * 2.2;
+        rover.object3D.position.x = targetX;
+        rover.object3D.position.z = targetZ;
+      },
+
+      // --- 7-STEP INTERACTIVE DEMONSTRATION MODE ---
+      startDemo() {
+        this.dismissStartup(false, false);
+        this.demoActive = true;
+        this.demoStep = 1;
+        const demoBanner = document.querySelector('#demo-banner');
+        if (demoBanner) demoBanner.style.display = 'flex';
+
+        this.voice.speak('Starting SafeSpace interactive safety demonstration.', true, 'SAFE');
+        this.executeDemoStep(1);
+      },
+
+      executeDemoStep(step) {
+        this.demoStep = step;
+        const stepBadge = document.querySelector('#demo-step-badge');
+        const stepName = document.querySelector('#demo-step-name');
+        const stepDesc = document.querySelector('#demo-step-instruction');
+        const progressFill = document.querySelector('#demo-progress-bar-fill');
+        const rover = document.querySelector('#obs-rover');
+
+        if (progressFill) progressFill.style.width = `${(step / this.demoTotalSteps) * 100}%`;
+
+        const playerRig = document.querySelector('#player-rig');
+        if (playerRig) playerRig.object3D.position.set(0, 0, 0);
+
+        switch (step) {
+          case 1:
+            if (stepBadge) stepBadge.innerHTML = '<span>🎬 DEMO STEP 1/7</span>';
+            if (stepName) stepName.textContent = 'Safe Baseline Environment';
+            if (stepDesc) stepDesc.textContent = 'User stands inside the calibrated 3.2m safe zone. All obstacles remain at a safe distance (> 4.0m). Safety status is SAFE (Green).';
+            if (rover) rover.object3D.position.set(0, 0, -4.5);
+            this.voice.speak('Step 1: Baseline safe zone active. All obstacles at safe distances.', true, 'SAFE');
+            break;
+
+          case 2:
+            if (stepBadge) stepBadge.innerHTML = '<span>🎬 DEMO STEP 2/7</span>';
+            if (stepName) stepName.textContent = 'Hazard Approaches';
+            if (stepDesc) stepDesc.textContent = 'An autonomous hazard rover approaches from the front. Watch the 360° radar and directional banner as distance decreases.';
+            if (rover) rover.object3D.position.set(0, 0, -3.2);
+            this.voice.speak('Step 2: Hazard approaching from ahead.', true, 'SAFE');
+            break;
+
+          case 3:
+            if (stepBadge) stepBadge.innerHTML = '<span>🎬 DEMO STEP 3/7</span>';
+            if (stepName) stepName.textContent = 'Caution Alert (Yellow)';
+            if (stepDesc) stepDesc.textContent = 'Rover enters the Caution threshold (~2.1m). Yellow ambient HUD cue, directional arrow, and voice alert trigger: "Caution. Obstacle detected ahead."';
+            if (rover) rover.object3D.position.set(0, 0, -2.1);
+            break;
+
+          case 4:
+            if (stepBadge) stepBadge.innerHTML = '<span>🎬 DEMO STEP 4/7</span>';
+            if (stepName) stepName.textContent = 'Warning Alert (Orange)';
+            if (stepDesc) stepDesc.textContent = 'Rover reaches 1.3m (Warning Zone). Prominent orange HUD alert, pulsing directional marker, and procedural double-ping audio trigger.';
+            if (rover) rover.object3D.position.set(0, 0, -1.3);
+            break;
+
+          case 5:
+            if (stepBadge) stepBadge.innerHTML = '<span>🎬 DEMO STEP 5/7</span>';
+            if (stepName) stepName.textContent = 'Critical Danger Alert (Red)';
+            if (stepDesc) stepDesc.textContent = 'Critical collision proximity (&le; 0.6m). Screen-edge red strobe activates, emergency siren sounds, and voice commands: "Danger. Stop. Obstacle very close."';
+            if (rover) rover.object3D.position.set(0, 0, -0.6);
+            break;
+
+          case 6:
+            if (stepBadge) stepBadge.innerHTML = '<span>🎬 DEMO STEP 6/7</span>';
+            if (stepName) stepName.textContent = 'Boundary Perimeter Breach';
+            if (stepDesc) stepDesc.textContent = 'Simulating player stepping outside safe radius (3.6m from center). Laser wall turns red, emergency beacon activates, and floor chevron points back to safe center.';
+            if (rover) rover.object3D.position.set(0, 0, -4.0);
+            if (playerRig) playerRig.object3D.position.set(0, 0, 3.6);
+            break;
+
+          case 7:
+            if (stepBadge) stepBadge.innerHTML = '<span>🎬 DEMO STEP 7/7</span>';
+            if (stepName) stepName.textContent = 'Safe Zone Return & Complete';
+            if (stepDesc) stepDesc.textContent = 'Player returns to safe center. All alert levels reset to SAFE. Demo complete! Feel free to explore freely in Desktop or Meta Quest 3S VR mode.';
+            if (rover) rover.object3D.position.set(0, 0, -4.5);
+            if (playerRig) playerRig.object3D.position.set(0, 0, 0);
+            this.voice.speak('SafeSpace demonstration complete. Safety restored. Ready for exploration.', true, 'SAFE');
+            break;
+        }
+      },
+
+      nextDemoStep() {
+        if (this.demoStep < this.demoTotalSteps) {
+          this.executeDemoStep(this.demoStep + 1);
+        } else {
+          this.stopDemo();
+        }
+      },
+
+      prevDemoStep() {
+        if (this.demoStep > 1) {
+          this.executeDemoStep(this.demoStep - 1);
+        }
+      },
+
+      stopDemo() {
+        this.demoActive = false;
+        const demoBanner = document.querySelector('#demo-banner');
+        if (demoBanner) demoBanner.style.display = 'none';
+        const playerRig = document.querySelector('#player-rig');
+        if (playerRig) playerRig.object3D.position.set(0, 0, 0);
+        const rover = document.querySelector('#obs-rover');
+        if (rover) rover.object3D.position.set(0, 0, -4.5);
+        this.voice.speak('Demo closed. Returning to live mode.', true, 'SAFE');
+      },
+
+      // --- UI MODAL & SETTINGS MANAGEMENT ---
+      openModal(modalId) {
+        const modal = document.getElementById(modalId);
+        if (modal) modal.style.display = 'flex';
+      },
+
+      closeModal(modalId) {
+        const modal = document.getElementById(modalId);
+        if (modal) modal.style.display = 'none';
+      },
+
+      closeModalOnBackdrop(e, modalId) {
+        if (e.target.classList.contains('modal-backdrop')) {
+          this.closeModal(modalId);
+        }
+      },
+
+      dismissStartup(enterVRNow = false, startDemoNow = false) {
+        const startup = document.querySelector('#startup-screen');
+        if (startup) {
+          startup.style.opacity = '0';
+          setTimeout(() => { startup.style.display = 'none'; }, 400);
+        }
+        if (enterVRNow) {
+          this.enterVR();
+        } else if (startDemoNow) {
+          this.startDemo();
+        }
+      },
+
+      enterVR() {
+        const scene = document.querySelector('a-scene');
+        if (scene) {
+          scene.enterVR();
+        }
+      },
+
+      updateSettings() {
+        const voiceTgl = document.getElementById('setting-voice-toggle');
+        const sfxTgl = document.getElementById('setting-sfx-toggle');
+        const hapticsTgl = document.getElementById('setting-haptics-toggle');
+        const cautionSlider = document.getElementById('setting-dist-caution');
+        const warningSlider = document.getElementById('setting-dist-warning');
+        const dangerSlider = document.getElementById('setting-dist-danger');
+        const boundarySlider = document.getElementById('setting-boundary-radius');
+        const cooldownSlider = document.getElementById('setting-voice-cooldown');
+
+        if (voiceTgl) this.config.voiceEnabled = voiceTgl.checked;
+        if (sfxTgl) this.config.sfxEnabled = sfxTgl.checked;
+        if (hapticsTgl) this.config.hapticsEnabled = hapticsTgl.checked;
+        if (cautionSlider) {
+          this.config.cautionDist = parseFloat(cautionSlider.value);
+          document.getElementById('val-dist-caution').textContent = `${this.config.cautionDist.toFixed(1)}m`;
+        }
+        if (warningSlider) {
+          this.config.warningDist = parseFloat(warningSlider.value);
+          document.getElementById('val-dist-warning').textContent = `${this.config.warningDist.toFixed(1)}m`;
+        }
+        if (dangerSlider) {
+          this.config.dangerDist = parseFloat(dangerSlider.value);
+          document.getElementById('val-dist-danger').textContent = `${this.config.dangerDist.toFixed(2)}m`;
+        }
+        if (boundarySlider) {
+          this.config.boundaryRadius = parseFloat(boundarySlider.value);
+          document.getElementById('val-boundary-radius').textContent = `${this.config.boundaryRadius.toFixed(1)}m`;
+          this.updateBoundary3DVisuals();
+        }
+        if (cooldownSlider) {
+          this.config.voiceCooldown = parseFloat(cooldownSlider.value);
+          document.getElementById('val-voice-cooldown').textContent = `${this.config.voiceCooldown.toFixed(1)}s`;
+          this.voice.cooldownSeconds = this.config.voiceCooldown;
+        }
+
+        if (this.audio) this.audio.enabled = this.config.sfxEnabled;
+        if (this.voice) this.voice.enabled = this.config.voiceEnabled;
+      },
+
+      setBoundaryPreset(radius) {
+        this.config.boundaryRadius = radius;
+        const slider = document.getElementById('setting-boundary-radius');
+        if (slider) slider.value = radius;
+        const valSpan = document.getElementById('val-boundary-radius');
+        if (valSpan) valSpan.textContent = `${radius.toFixed(1)}m`;
+        this.updateBoundary3DVisuals();
+        this.closeModal('calibrate-modal');
+        this.voice.speak(`Boundary calibrated to ${radius.toFixed(1)} meters.`, true, 'SAFE');
+      },
+
+      updateBoundary3DVisuals() {
+        const ring = document.querySelector('#ring-safe-boundary');
+        const curtain = document.querySelector('#boundary-laser-curtain');
+        if (ring) {
+          ring.setAttribute('radius-inner', this.config.boundaryRadius - 0.05);
+          ring.setAttribute('radius-outer', this.config.boundaryRadius);
+        }
+        if (curtain) {
+          curtain.setAttribute('radius', this.config.boundaryRadius);
+        }
+      },
+
+      recenterPlayerOrigin() {
+        const headset = document.querySelector('#headset-cam');
+        if (headset && headset.object3D) {
+          const headWorldPos = new THREE.Vector3();
+          headset.object3D.getWorldPosition(headWorldPos);
+          this.playerOriginOffset.x = headWorldPos.x;
+          this.playerOriginOffset.z = headWorldPos.z;
+          this.voice.speak('Safe space origin re-centered to your position.', true, 'SAFE');
+          this.closeModal('calibrate-modal');
+        }
+      },
+
+      resetDefaultBounds() {
+        this.playerOriginOffset = { x: 0, z: 0 };
+        this.setBoundaryPreset(3.2);
+      },
+
+      // --- SPAWN CUSTOM HAZARDS ---
+      spawnHazard(type) {
+        const container = document.querySelector('#obstacle-container');
+        if (!container) return;
+
+        const newObs = document.createElement('a-entity');
+        const newId = `obs-custom-${Date.now()}`;
+        newObs.setAttribute('id', newId);
+        newObs.classList.add('safespace-obstacle');
+
+        const angle = Math.random() * Math.PI * 2;
+        const dist = 2.2 + Math.random() * 1.5;
+        const x = Math.sin(angle) * dist;
+        const z = Math.cos(angle) * dist;
+        newObs.setAttribute('position', `${x.toFixed(2)} 0 ${z.toFixed(2)}`);
+
+        if (type === 'crate') {
+          newObs.setAttribute('data-name', 'Added Cyber Crate');
+          newObs.setAttribute('data-radius', '0.5');
+          newObs.innerHTML = `
+            <a-box width="0.8" height="0.8" depth="0.8" position="0 0.4 0" material="color: #334155; metalness: 0.6;"></a-box>
+            <a-entity class="obstacle-beacon" position="0 1.0 0">
+              <a-plane width="0.8" height="0.25" material="color: #0b111e; opacity: 0.85; transparent: true;"></a-plane>
+              <a-text class="beacon-label" value="NEW CRATE" align="center" position="0 0.04 0.02" scale="0.2 0.2 0.2" color="#f97316"></a-text>
+              <a-text class="beacon-dist" value="0.0m" align="center" position="0 -0.05 0.02" scale="0.18 0.18 0.18" color="#38bdf8"></a-text>
+            </a-entity>
+          `;
+        } else if (type === 'pylon') {
+          newObs.setAttribute('data-name', 'Added Safety Pylon');
+          newObs.setAttribute('data-radius', '0.35');
+          newObs.innerHTML = `
+            <a-cylinder radius="0.15" height="1.4" position="0 0.7 0" material="color: #0f172a;"></a-cylinder>
+            <a-sphere radius="0.1" position="0 1.45 0" material="color: #f59e0b; emissive: #f59e0b; emissiveIntensity: 0.9;"></a-sphere>
+            <a-entity class="obstacle-beacon" position="0 1.75 0">
+              <a-plane width="0.8" height="0.25" material="color: #0b111e; opacity: 0.85; transparent: true;"></a-plane>
+              <a-text class="beacon-label" value="NEW PYLON" align="center" position="0 0.04 0.02" scale="0.2 0.2 0.2" color="#f59e0b"></a-text>
+              <a-text class="beacon-dist" value="0.0m" align="center" position="0 -0.05 0.02" scale="0.18 0.18 0.18" color="#38bdf8"></a-text>
+            </a-entity>
+          `;
+        } else {
+          newObs.setAttribute('data-name', 'Added Safety Barrier');
+          newObs.setAttribute('data-radius', '0.6');
+          newObs.innerHTML = `
+            <a-box width="1.4" height="0.8" depth="0.2" position="0 0.4 0" material="color: #1e293b; metalness: 0.5;"></a-box>
+            <a-entity class="obstacle-beacon" position="0 1.0 0">
+              <a-plane width="0.8" height="0.25" material="color: #0b111e; opacity: 0.85; transparent: true;"></a-plane>
+              <a-text class="beacon-label" value="NEW BARRIER" align="center" position="0 0.04 0.02" scale="0.2 0.2 0.2" color="#00f0ff"></a-text>
+              <a-text class="beacon-dist" value="0.0m" align="center" position="0 -0.05 0.02" scale="0.18 0.18 0.18" color="#38bdf8"></a-text>
+            </a-entity>
+          `;
+        }
+
+        container.appendChild(newObs);
+        setTimeout(() => {
+          this.registerObstaclesFromScene();
+          this.closeModal('spawn-modal');
+          this.voice.speak('New hazard spawned into test environment.', false, 'SAFE');
+        }, 100);
+      },
+
+      clearDynamicObstacles() {
+        const customElements = document.querySelectorAll('[id^="obs-custom-"]');
+        customElements.forEach(el => el.remove());
+        this.registerObstaclesFromScene();
+        this.closeModal('spawn-modal');
+        this.voice.speak('Added obstacles cleared.', false, 'SAFE');
+      },
+
+      // --- MAIN ANIMATION & EVALUATION TICK ---
+      renderLoop(timestamp) {
+        if (!this.lastFrameTime) this.lastFrameTime = timestamp;
+        const deltaTime = Math.min((timestamp - this.lastFrameTime) / 1000, 0.1);
+        this.lastFrameTime = timestamp;
+
+        this.updateSpatialTracking();
+        this.updateAutonomousRover(deltaTime);
+        this.drawRadar();
+
+        const coordsDisplay = document.querySelector('#radar-player-coords');
+        const headset = document.querySelector('#headset-cam');
+        if (coordsDisplay && headset) {
+          const pos = headset.object3D.position;
+          coordsDisplay.textContent = `${pos.x.toFixed(1)}, ${pos.z.toFixed(1)}`;
+        }
+
+        requestAnimationFrame(this.renderLoop.bind(this));
+      }
+    };
+
+    // --- A-FRAME CUSTOM COMPONENTS ---
+    AFRAME.registerComponent('safespace-controller', {
+      schema: { hand: { type: 'string', default: 'right' } },
+      init: function () {
+        this.el.addEventListener('axismove', this.onThumbstickMove.bind(this));
+        this.el.addEventListener('triggerdown', this.onTriggerDown.bind(this));
+      },
+      onThumbstickMove: function (evt) {
+        const playerRig = document.querySelector('#player-rig');
+        if (!playerRig) return;
+
+        if (this.data.hand === 'left') {
+          const x = evt.detail.axis[2] || evt.detail.axis[0] || 0;
+          const z = evt.detail.axis[3] || evt.detail.axis[1] || 0;
+          if (Math.hypot(x, z) > 0.15) {
+            const headCam = document.querySelector('#headset-cam');
+            const dir = new THREE.Vector3();
+            headCam.object3D.getWorldDirection(dir);
+            dir.y = 0; dir.normalize();
+            
+            const side = new THREE.Vector3(-dir.z, 0, dir.x);
+            playerRig.object3D.position.addScaledVector(dir, -z * 0.04);
+            playerRig.object3D.position.addScaledVector(side, x * 0.04);
+          }
+        }
+        else if (this.data.hand === 'right') {
+          const x = evt.detail.axis[2] || evt.detail.axis[0] || 0;
+          if (Math.abs(x) > 0.65 && !this.snapCooldown) {
+            const turnAngle = x > 0 ? -30 : 30;
+            playerRig.object3D.rotation.y += turnAngle * (Math.PI / 180);
+            this.snapCooldown = true;
+            setTimeout(() => { this.snapCooldown = false; }, 350);
+          }
+        }
+      },
+      onTriggerDown: function () {
+        SafeSpaceApp.voice.speak('Controller trigger clicked.', false, 'SAFE');
+      }
+    });
+
+    AFRAME.registerComponent('safespace-system', {
+      init: function () {
+        const sceneEl = this.el;
+        if (sceneEl.hasLoaded) {
+          SafeSpaceApp.init();
+        } else {
+          sceneEl.addEventListener('loaded', () => {
+            SafeSpaceApp.init();
+          });
+        }
+      }
+    });
+
+    const initSafeSpaceWhenReady = () => {
+      const sceneEl = document.querySelector('a-scene');
+      if (sceneEl) {
+        if (sceneEl.hasLoaded) {
+          SafeSpaceApp.init();
+        } else {
+          sceneEl.addEventListener('loaded', () => {
+            SafeSpaceApp.init();
+          });
+        }
+      } else {
+        window.addEventListener('DOMContentLoaded', () => {
+          const sc = document.querySelector('a-scene');
+          if (sc) {
+            if (sc.hasLoaded) SafeSpaceApp.init();
+            else sc.addEventListener('loaded', () => SafeSpaceApp.init());
+          }
+        });
+      }
+    };
+
+    initSafeSpaceWhenReady();
+  </script>
+</body>
+</html>

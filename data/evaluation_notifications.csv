@@ -1,0 +1,127 @@
+schema_version,event_id,package_name,title,text,posted_at,event_type,ground_truth_category,ground_truth_has_action,ground_truth_has_deadline,ground_truth_priority
+1,evt-syn-99-0056,com.amazon.mShop.android.shopping,Order Shipped,Your package with order #98214 is out for delivery today.,2026-10-17T19:47:19.343318+00:00,posted,transactional,False,False,medium
+1,evt-syn-99-0099,com.gaming.arcade,Free Coins Bonus!,"Claim your 1,000 free bonus coins by logging into Diamond Quest right now!",2026-10-18T23:29:58.332644+00:00,posted,promotional,False,True,low
+1,evt-syn-99-0031,com.paypal.android.p2pmobile,Money Received,You received $120.00 from Alex for the freelance project.,2026-10-18T03:50:20.534077+00:00,posted,transactional,False,False,medium
+1,evt-syn-99-0045,com.dhl.express,Customs Clearance,Shipment #38192 cleared customs in transit.,2026-10-19T03:05:00.103442+00:00,posted,transactional,False,False,medium
+1,evt-syn-99-0014,com.telecom.provider,SIM KYC Renewal,Kindly complete your re-verification process within 48 hours.,2026-10-17T21:08:19.719337+00:00,posted,action_required,True,True,high
+1,evt-dup-1-0126,com.slack,Daily Standup Reminder,Please post your standup updates in #engineering.,2026-10-19T12:00:00+00:00,posted,action_required,True,False,medium
+1,evt-syn-99-0060,com.zomato,Order Delivered,Enjoy your meal! Order #4489 has been delivered to your door.,2026-10-17T23:28:44.215390+00:00,posted,transactional,False,False,medium
+1,evt-syn-99-0098,com.gadgets.direct,Special Clearance Discount,Refurbished laptops and smartwatches up to 70% off while supplies last.,2026-10-17T16:53:32.190654+00:00,posted,promotional,False,False,low
+1,evt-syn-99-0003,com.github.android,Pull Request Review,Please review pull request #142 for the authentication module.,2026-10-19T04:19:11.019266+00:00,posted,action_required,True,False,medium
+1,evt-syn-99-0055,com.bank.secure,Transaction Alert,Debited USD 45.20 at Supermarket using card ending 4092 on 19-Oct.,2026-10-18T01:51:40.891108+00:00,posted,transactional,False,True,medium
+1,evt-syn-99-0096,com.gaming.arcade,Free Coins Bonus!,"Claim your 1,000 free bonus coins by logging into Diamond Quest right now!",2026-10-17T08:04:38.347297+00:00,posted,promotional,False,True,low
+1,evt-syn-99-0112,com.android.providers.downloads,Download Complete,notifyiq_dataset_v1.zip finished downloading (12.4 MB).,2026-10-18T12:01:39.228452+00:00,posted,system,False,False,medium
+1,evt-syn-99-0062,com.telegram.messenger,Family Chat,Grandma: Happy birthday! Hope you have a wonderful year ahead!,2026-10-17T10:00:45.521225+00:00,posted,social,False,False,low
+1,evt-dup-0-0123,com.shopping.mega,MEGA SALE 50% OFF,Flash sale ends midnight! Use code SAVE50 on fashion!,2026-10-19T12:00:00+00:00,posted,promotional,False,True,medium
+1,evt-syn-99-0027,com.zoom.videomeetings,Webinar Registration,Register for the Q4 all-hands session before 3 PM today.,2026-10-18T06:08:26.588001+00:00,posted,action_required,True,True,high
+1,evt-syn-99-0074,com.telegram.messenger,Family Chat,Grandma: Happy birthday! Hope you have a wonderful year ahead!,2026-10-17T05:13:41.235377+00:00,posted,social,False,False,low
+1,evt-syn-99-0081,com.signal.messenger,Lucas,Sent the encrypted notes for the meeting yesterday.,2026-10-17T13:57:30.225025+00:00,posted,social,False,False,low
+1,evt-syn-99-0120,com.mystery.service,Sync Status,Service ping completed with code 200.,2026-10-18T14:11:28.447278+00:00,posted,unknown,False,False,low
+1,evt-syn-99-0079,com.discord,Gaming Guild,Server announcement: Tournament starts tonight at 9 PM.,2026-10-17T13:08:03.726159+00:00,posted,social,False,True,low
+1,evt-syn-99-0024,com.google.android.apps.docs,Document Approval,Please review and approve the project budget proposal before 5 PM.,2026-10-18T12:11:38.248428+00:00,posted,action_required,True,True,high
+1,evt-syn-99-0077,com.facebook.katana,Group Update,5 new posts in Open Source Developers Group today.,2026-10-18T08:28:08.385687+00:00,posted,social,False,False,low
+1,evt-syn-99-0087,com.travel.booking,Unbeatable Flight Deals,Fly to Bali starting at just $299 roundtrip. Book before seats run out!,2026-10-17T05:08:07.753553+00:00,posted,promotional,False,True,low
+1,evt-syn-99-0065,com.linkedin.android,Connection Request,"Michael Chang, Senior ML Engineer, wants to connect with you.",2026-10-17T14:55:23.352720+00:00,posted,social,False,False,low
+1,evt-syn-99-0103,com.google.android.apps.authenticator2,2FA Key Synced,Cloud backup for two-factor authentication accounts completed.,2026-10-18T16:21:00.355762+00:00,posted,system,False,False,medium
+1,evt-syn-99-0106,com.google.android.gms,Security Alert,"New sign-in detected on Windows Chrome near Mumbai, India.",2026-10-16T14:35:17.078084+00:00,posted,system,False,False,medium
+1,evt-syn-99-0093,com.gadgets.direct,Special Clearance Discount,Refurbished laptops and smartwatches up to 70% off while supplies last.,2026-10-18T15:34:21.175012+00:00,posted,promotional,False,False,low
+1,evt-syn-99-0115,com.test.debug,---,...,2026-10-17T20:42:57.085768+00:00,posted,unknown,False,False,low
+1,evt-syn-99-0019,com.tax.portal,Filing Reminder,Please upload your tax declarations and receipts before tomorrow noon.,2026-10-19T13:21:07.692547+00:00,posted,action_required,True,True,high
+1,evt-syn-99-0033,com.airline.fly,Boarding Pass Ready,Check-in successful. Your flight AI-202 departs at Terminal 3 Gate 14.,2026-10-17T16:27:29.315072+00:00,posted,transactional,False,True,medium
+1,evt-syn-99-0009,com.health.portal,Appointment Confirmation,Confirm your dental consultation scheduled for tomorrow at 10:00 AM.,2026-10-18T22:19:11.361960+00:00,posted,action_required,True,True,high
+1,evt-syn-99-0061,com.twitter.android,New Mention,TechDaily mentioned you in: 'Exciting AI architectures for edge devices!',2026-10-16T22:39:32.525432+00:00,posted,social,False,False,low
+1,evt-syn-99-0086,com.fashion.store,Autumn Collection Dropped,Explore fresh seasonal styles with exclusive 20% member savings.,2026-10-16T21:48:48.412470+00:00,posted,promotional,False,False,low
+1,evt-dup-1-0124,com.shopping.mega,MEGA SALE 50% OFF,Flash sale ends midnight! Use code SAVE50 on fashion!,2026-10-19T12:00:00+00:00,posted,promotional,False,True,medium
+1,evt-syn-99-0059,com.airline.fly,Boarding Pass Ready,Check-in successful. Your flight AI-202 departs at Terminal 3 Gate 14.,2026-10-18T10:09:03.295280+00:00,posted,transactional,False,True,medium
+1,evt-syn-99-0006,com.google.android.calendar,RSVP Required,Please respond to the invitation for Strategy Sync by 4 PM.,2026-10-17T23:10:21.235939+00:00,posted,action_required,True,True,high
+1,evt-syn-99-0029,com.tax.portal,Filing Reminder,Please upload your tax declarations and receipts before tomorrow noon.,2026-10-17T14:25:28.037912+00:00,posted,action_required,True,True,high
+1,evt-syn-99-0037,com.ubercab,Ride Receipt,Your trip with Uber on Monday cost $18.50. Thank you for riding.,2026-10-16T21:11:31.726400+00:00,posted,transactional,False,False,medium
+1,evt-syn-99-0016,com.tax.portal,Filing Reminder,Please upload your tax declarations and receipts before tomorrow noon.,2026-10-17T13:11:47.602643+00:00,posted,action_required,True,True,high
+1,evt-syn-99-0104,com.qualcomm.location,GPS Active,Navigation is using precise location in the background.,2026-10-17T16:51:42.710534+00:00,posted,system,False,False,medium
+1,evt-syn-99-0091,com.shopping.mega,MEGA SALE 50% OFF,Flash sale ends midnight! Use code SAVE50 on fashion and electronics!,2026-10-19T05:49:23.945239+00:00,posted,promotional,False,False,low
+1,evt-syn-99-0114,com.google.android.apps.authenticator2,2FA Key Synced,Cloud backup for two-factor authentication accounts completed.,2026-10-19T00:41:40.253971+00:00,posted,system,False,False,medium
+1,evt-dup-0-0121,com.bank.secure,Transaction Alert,Debited USD 12.00 at Metro Transit on 19-Oct.,2026-10-19T12:00:00+00:00,posted,transactional,False,False,medium
+1,evt-syn-99-0111,com.google.android.apps.authenticator2,2FA Key Synced,Cloud backup for two-factor authentication accounts completed.,2026-10-18T07:50:02.677956+00:00,posted,system,False,False,medium
+1,evt-syn-99-0042,com.dhl.express,Customs Clearance,Shipment #38192 cleared customs in transit.,2026-10-18T03:39:55.048955+00:00,posted,transactional,False,False,medium
+1,evt-syn-99-0032,com.airline.fly,Boarding Pass Ready,Check-in successful. Your flight AI-202 departs at Terminal 3 Gate 14.,2026-10-19T08:03:52.506775+00:00,posted,transactional,False,True,medium
+1,evt-syn-99-0083,com.telegram.messenger,Family Chat,Grandma: Happy birthday! Hope you have a wonderful year ahead!,2026-10-16T22:05:24.457042+00:00,posted,social,False,False,low
+1,evt-syn-99-0095,com.pizza.hut,Buy 1 Get 1 Free,Tasty Tuesday is here! Buy any medium pizza and get another free!,2026-10-16T18:48:38.570955+00:00,posted,promotional,False,False,low
+1,evt-syn-99-0048,com.paypal.android.p2pmobile,Money Received,You received $120.00 from Alex for the freelance project.,2026-10-16T14:38:18.091123+00:00,posted,transactional,False,False,medium
+1,evt-syn-99-0071,com.discord,Gaming Guild,Server announcement: Tournament starts tonight at 9 PM.,2026-10-16T16:36:08.286495+00:00,posted,social,False,True,low
+1,evt-syn-99-0080,com.signal.messenger,Lucas,Sent the encrypted notes for the meeting yesterday.,2026-10-16T23:52:16.980834+00:00,posted,social,False,False,low
+1,evt-syn-99-0013,com.coursera.org,Quiz Deadline,Quiz 4 expires in 3 hours. Complete it to maintain your grade.,2026-10-17T14:24:18.605822+00:00,posted,action_required,True,True,high
+1,evt-syn-99-0028,com.insurance.policy,Renewal Notice,Your vehicle insurance expires in two days. Renew your policy now.,2026-10-16T15:13:49.247055+00:00,posted,action_required,True,True,high
+1,evt-syn-99-0113,com.android.settings,Low Storage Space,Less than 1 GB storage remaining. Tap to free up space.,2026-10-18T18:13:47.078440+00:00,posted,system,False,False,medium
+1,evt-syn-99-0052,com.ubercab,Ride Receipt,Your trip with Uber on Monday cost $18.50. Thank you for riding.,2026-10-17T01:03:48.896707+00:00,posted,transactional,False,False,medium
+1,evt-syn-99-0058,com.airline.fly,Boarding Pass Ready,Check-in successful. Your flight AI-202 departs at Terminal 3 Gate 14.,2026-10-18T09:12:16.739830+00:00,posted,transactional,False,True,medium
+1,evt-syn-99-0004,org.edx.mobile,Assignment Due Soon,Your assignment for Machine Learning module 3 is due tomorrow at 11:59 PM.,2026-10-18T19:50:32.072992+00:00,posted,action_required,True,True,high
+1,evt-syn-99-0050,com.ubercab,Ride Receipt,Your trip with Uber on Monday cost $18.50. Thank you for riding.,2026-10-16T22:35:49.320803+00:00,posted,transactional,False,False,medium
+1,evt-syn-99-0068,com.linkedin.android,Connection Request,"Michael Chang, Senior ML Engineer, wants to connect with you.",2026-10-18T10:19:20.734432+00:00,posted,social,False,False,low
+1,evt-syn-99-0108,com.android.providers.downloads,Download Complete,notifyiq_dataset_v1.zip finished downloading (12.4 MB).,2026-10-18T18:51:38.676064+00:00,posted,system,False,False,medium
+1,evt-syn-99-0089,com.fashion.store,Autumn Collection Dropped,Explore fresh seasonal styles with exclusive 20% member savings.,2026-10-18T08:32:49.645328+00:00,posted,promotional,False,False,low
+1,evt-syn-99-0067,com.telegram.messenger,Family Chat,Grandma: Happy birthday! Hope you have a wonderful year ahead!,2026-10-18T22:10:56.551146+00:00,posted,social,False,False,low
+1,evt-syn-99-0039,com.railway.irctc,Ticket Confirmed,PNR 2419830214 confirmed. Coach B3 Berth 21.,2026-10-18T19:22:48.879591+00:00,posted,transactional,False,False,medium
+1,evt-syn-99-0040,com.airline.fly,Boarding Pass Ready,Check-in successful. Your flight AI-202 departs at Terminal 3 Gate 14.,2026-10-17T02:34:22.363675+00:00,posted,transactional,False,True,medium
+1,evt-syn-99-0092,com.gadgets.direct,Special Clearance Discount,Refurbished laptops and smartwatches up to 70% off while supplies last.,2026-10-18T23:20:25.443683+00:00,posted,promotional,False,False,low
+1,evt-syn-99-0078,com.signal.messenger,Lucas,Sent the encrypted notes for the meeting yesterday.,2026-10-19T02:26:15.773321+00:00,posted,social,False,False,low
+1,evt-syn-99-0119,com.test.debug,---,...,2026-10-18T00:17:01.403888+00:00,posted,unknown,False,False,low
+1,evt-syn-99-0049,com.airline.fly,Boarding Pass Ready,Check-in successful. Your flight AI-202 departs at Terminal 3 Gate 14.,2026-10-19T03:26:15.816847+00:00,posted,transactional,False,True,medium
+1,evt-syn-99-0102,com.shopping.mega,MEGA SALE 50% OFF,Flash sale ends midnight! Use code SAVE50 on fashion and electronics!,2026-10-16T16:47:39.062443+00:00,posted,promotional,False,False,low
+1,evt-syn-99-0105,com.android.bluetooth,Bluetooth Connected,Connected to Sony WH-1000XM4 headphones.,2026-10-18T23:57:04.034235+00:00,posted,system,False,False,medium
+1,evt-syn-99-0012,com.utility.electricity,Bill Due,Your electricity bill payment of $84.50 is due by tomorrow 5 PM.,2026-10-18T22:36:52.981934+00:00,posted,action_required,True,True,high
+1,evt-syn-99-0070,com.instagram.android,david_k liked your story,david_k and 4 others reacted to your story.,2026-10-16T22:26:47.901983+00:00,posted,social,False,False,low
+1,evt-syn-99-0020,com.github.android,Pull Request Review,Please review pull request #142 for the authentication module.,2026-10-18T11:50:02.358630+00:00,posted,action_required,True,False,medium
+1,evt-syn-99-0109,com.android.systemui,Battery Saver Enabled,Battery at 15%. Performance optimized to extend battery life.,2026-10-19T04:39:47.173562+00:00,posted,system,False,True,medium
+1,evt-syn-99-0017,org.edx.mobile,Assignment Due Soon,Your assignment for Machine Learning module 3 is due tomorrow at 11:59 PM.,2026-10-18T04:10:33.932911+00:00,posted,action_required,True,True,high
+1,evt-dup-1-0122,com.bank.secure,Transaction Alert,Debited USD 12.00 at Metro Transit on 19-Oct.,2026-10-19T12:00:00+00:00,posted,transactional,False,False,medium
+1,evt-syn-99-0011,com.telecom.provider,SIM KYC Renewal,Kindly complete your re-verification process within 48 hours.,2026-10-18T09:59:41.128467+00:00,posted,action_required,True,True,high
+1,evt-syn-99-0118,com.mystery.service,Sync Status,Service ping completed with code 200.,2026-10-17T23:40:24.203829+00:00,posted,unknown,False,False,low
+1,evt-syn-99-0046,com.airline.fly,Boarding Pass Ready,Check-in successful. Your flight AI-202 departs at Terminal 3 Gate 14.,2026-10-19T04:57:28.859377+00:00,posted,transactional,False,True,medium
+1,evt-syn-99-0023,com.github.android,Pull Request Review,Please review pull request #142 for the authentication module.,2026-10-17T18:21:50.017271+00:00,posted,action_required,True,False,medium
+1,evt-syn-99-0116,com.legacy.tool,Log Notice,Index cache rebuilt in 34ms.,2026-10-16T21:57:42.354216+00:00,posted,unknown,False,False,low
+1,evt-syn-99-0026,com.google.android.calendar,RSVP Required,Please respond to the invitation for Strategy Sync by 4 PM.,2026-10-19T02:20:15.432580+00:00,posted,action_required,True,True,high
+1,evt-syn-99-0100,com.shopping.mega,MEGA SALE 50% OFF,Flash sale ends midnight! Use code SAVE50 on fashion and electronics!,2026-10-16T14:01:59.411102+00:00,posted,promotional,False,False,low
+1,evt-dup-0-0125,com.slack,Daily Standup Reminder,Please post your standup updates in #engineering.,2026-10-19T12:00:00+00:00,posted,action_required,True,False,medium
+1,evt-syn-99-0047,com.bank.secure,Transaction Alert,Debited USD 45.20 at Supermarket using card ending 4092 on 19-Oct.,2026-10-19T03:34:14.421744+00:00,posted,transactional,False,True,medium
+1,evt-syn-99-0085,com.gym.fitness,New Year Membership Special,Join today with 0 enrollment fee and get the first month complimentary!,2026-10-17T11:58:37.684238+00:00,posted,promotional,False,False,low
+1,evt-syn-99-0117,com.test.debug,---,...,2026-10-17T14:05:08.260293+00:00,posted,unknown,False,False,low
+1,evt-syn-99-0035,com.amazon.mShop.android.shopping,Order Shipped,Your package with order #98214 is out for delivery today.,2026-10-18T10:30:06.038309+00:00,posted,transactional,False,False,medium
+1,evt-syn-99-0110,com.android.providers.downloads,Download Complete,notifyiq_dataset_v1.zip finished downloading (12.4 MB).,2026-10-16T21:03:46.472506+00:00,posted,system,False,False,medium
+1,evt-syn-99-0063,com.discord,Gaming Guild,Server announcement: Tournament starts tonight at 9 PM.,2026-10-17T06:28:40.532044+00:00,posted,social,False,True,low
+1,evt-syn-99-0015,org.edx.mobile,Assignment Due Soon,Your assignment for Machine Learning module 3 is due tomorrow at 11:59 PM.,2026-10-16T17:49:14.999083+00:00,posted,action_required,True,True,high
+1,evt-syn-99-0025,com.github.android,Pull Request Review,Please review pull request #142 for the authentication module.,2026-10-16T17:25:14.200509+00:00,posted,action_required,True,False,medium
+1,evt-syn-99-0101,com.gaming.arcade,Free Coins Bonus!,"Claim your 1,000 free bonus coins by logging into Diamond Quest right now!",2026-10-19T08:27:59.081524+00:00,posted,promotional,False,True,low
+1,evt-syn-99-0054,com.zomato,Order Delivered,Enjoy your meal! Order #4489 has been delivered to your door.,2026-10-19T00:31:48.200286+00:00,posted,transactional,False,False,medium
+1,evt-syn-99-0090,com.gym.fitness,New Year Membership Special,Join today with 0 enrollment fee and get the first month complimentary!,2026-10-17T14:41:36.960539+00:00,posted,promotional,False,False,low
+1,evt-syn-99-0008,com.airbnb.android,Booking Confirmation,Please confirm your upcoming reservation details by tonight 8 PM.,2026-10-17T09:58:19.122846+00:00,posted,action_required,True,True,high
+1,evt-syn-99-0057,com.amazon.mShop.android.shopping,Order Shipped,Your package with order #98214 is out for delivery today.,2026-10-18T13:38:18.337774+00:00,posted,transactional,False,False,medium
+1,evt-syn-99-0021,com.insurance.policy,Renewal Notice,Your vehicle insurance expires in two days. Renew your policy now.,2026-10-17T23:28:59.192208+00:00,posted,action_required,True,True,high
+1,evt-syn-99-0038,com.amazon.mShop.android.shopping,Order Shipped,Your package with order #98214 is out for delivery today.,2026-10-17T15:51:10.148685+00:00,posted,transactional,False,False,medium
+1,evt-syn-99-0097,com.ott.stream,Blockbuster Movie Streaming,Watch the latest action thriller streaming exclusively on StreamMax.,2026-10-18T04:14:56.543199+00:00,posted,promotional,False,False,low
+1,evt-syn-99-0072,com.facebook.katana,Group Update,5 new posts in Open Source Developers Group today.,2026-10-19T08:53:24.898140+00:00,posted,social,False,False,low
+1,evt-syn-99-0030,com.google.android.apps.docs,Document Approval,Please review and approve the project budget proposal before 5 PM.,2026-10-19T06:00:21.330279+00:00,posted,action_required,True,True,high
+1,evt-syn-99-0066,com.facebook.katana,Group Update,5 new posts in Open Source Developers Group today.,2026-10-19T06:17:48.001437+00:00,posted,social,False,False,low
+1,evt-syn-99-0044,com.dhl.express,Customs Clearance,Shipment #38192 cleared customs in transit.,2026-10-17T18:47:01.926656+00:00,posted,transactional,False,False,medium
+1,evt-syn-99-0107,com.google.android.apps.authenticator2,2FA Key Synced,Cloud backup for two-factor authentication accounts completed.,2026-10-18T09:15:06.096697+00:00,posted,system,False,False,medium
+1,evt-syn-99-0005,com.airbnb.android,Booking Confirmation,Please confirm your upcoming reservation details by tonight 8 PM.,2026-10-17T23:44:04.465616+00:00,posted,action_required,True,True,high
+1,evt-syn-99-0051,com.zomato,Order Delivered,Enjoy your meal! Order #4489 has been delivered to your door.,2026-10-17T06:29:46.398210+00:00,posted,transactional,False,False,medium
+1,evt-syn-99-0007,com.health.portal,Appointment Confirmation,Confirm your dental consultation scheduled for tomorrow at 10:00 AM.,2026-10-18T02:43:16.069930+00:00,posted,action_required,True,True,high
+1,evt-syn-99-0076,com.facebook.katana,Group Update,5 new posts in Open Source Developers Group today.,2026-10-18T06:55:00.166691+00:00,posted,social,False,False,low
+1,evt-syn-99-0018,com.airbnb.android,Booking Confirmation,Please confirm your upcoming reservation details by tonight 8 PM.,2026-10-19T10:50:00.093756+00:00,posted,action_required,True,True,high
+1,evt-syn-99-0022,com.coursera.org,Quiz Deadline,Quiz 4 expires in 3 hours. Complete it to maintain your grade.,2026-10-18T00:36:31.345230+00:00,posted,action_required,True,True,high
+1,evt-syn-99-0034,com.paypal.android.p2pmobile,Money Received,You received $120.00 from Alex for the freelance project.,2026-10-18T15:37:29.575484+00:00,posted,transactional,False,False,medium
+1,evt-syn-99-0053,com.bank.secure,Transaction Alert,Debited USD 45.20 at Supermarket using card ending 4092 on 19-Oct.,2026-10-17T00:13:09.938768+00:00,posted,transactional,False,True,medium
+1,evt-syn-99-0041,com.paypal.android.p2pmobile,Money Received,You received $120.00 from Alex for the freelance project.,2026-10-18T12:27:40.202221+00:00,posted,transactional,False,False,medium
+1,evt-syn-99-0075,com.snapchat.android,Snap from Jessica,Jessica sent you a snap!,2026-10-19T04:44:54.735820+00:00,posted,social,False,False,low
+1,evt-syn-99-0002,com.health.portal,Appointment Confirmation,Confirm your dental consultation scheduled for tomorrow at 10:00 AM.,2026-10-19T01:02:38.807339+00:00,posted,action_required,True,True,high
+1,evt-syn-99-0082,com.reddit.frontpage,Trending in r/Python,Check out how to build asynchronous microservices without bloat.,2026-10-18T23:55:02.891857+00:00,posted,social,False,False,low
+1,evt-syn-99-0036,com.paypal.android.p2pmobile,Money Received,You received $120.00 from Alex for the freelance project.,2026-10-18T00:16:02.604847+00:00,posted,transactional,False,False,medium
+1,evt-syn-99-0069,com.reddit.frontpage,Trending in r/Python,Check out how to build asynchronous microservices without bloat.,2026-10-17T07:52:00.121274+00:00,posted,social,False,False,low
+1,evt-syn-99-0088,com.gaming.arcade,Free Coins Bonus!,"Claim your 1,000 free bonus coins by logging into Diamond Quest right now!",2026-10-17T14:38:59.000251+00:00,posted,promotional,False,True,low
+1,evt-syn-99-0073,com.facebook.katana,Group Update,5 new posts in Open Source Developers Group today.,2026-10-16T20:40:18.888565+00:00,posted,social,False,False,low
+1,evt-syn-99-0001,com.airbnb.android,Booking Confirmation,Please confirm your upcoming reservation details by tonight 8 PM.,2026-10-18T10:31:25.988727+00:00,posted,action_required,True,True,high
+1,evt-syn-99-0094,com.travel.booking,Unbeatable Flight Deals,Fly to Bali starting at just $299 roundtrip. Book before seats run out!,2026-10-18T01:09:02.745127+00:00,posted,promotional,False,True,low
+1,evt-syn-99-0084,com.telegram.messenger,Family Chat,Grandma: Happy birthday! Hope you have a wonderful year ahead!,2026-10-19T13:35:24.057754+00:00,posted,social,False,False,low
+1,evt-syn-99-0043,com.amazon.mShop.android.shopping,Order Shipped,Your package with order #98214 is out for delivery today.,2026-10-19T04:29:10.870238+00:00,posted,transactional,False,False,medium
+1,evt-syn-99-0010,com.insurance.policy,Renewal Notice,Your vehicle insurance expires in two days. Renew your policy now.,2026-10-17T05:13:12.259738+00:00,posted,action_required,True,True,high
+1,evt-syn-99-0064,com.linkedin.android,Connection Request,"Michael Chang, Senior ML Engineer, wants to connect with you.",2026-10-18T15:30:32.367333+00:00,posted,social,False,False,low

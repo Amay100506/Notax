@@ -1,0 +1,452 @@
+[
+  {
+    "schema_version": 1,
+    "event_id": "evt-syn-99-0056",
+    "package_name": "com.amazon.mShop.android.shopping",
+    "title": "Order Shipped",
+    "text": "Your package with order #98214 is out for delivery today.",
+    "posted_at": "2026-10-17T19:47:19.343318+00:00",
+    "event_type": "posted"
+  },
+  {
+    "schema_version": 1,
+    "event_id": "evt-syn-99-0099",
+    "package_name": "com.gaming.arcade",
+    "title": "Free Coins Bonus!",
+    "text": "Claim your 1,000 free bonus coins by logging into Diamond Quest right now!",
+    "posted_at": "2026-10-18T23:29:58.332644+00:00",
+    "event_type": "posted"
+  },
+  {
+    "schema_version": 1,
+    "event_id": "evt-syn-99-0031",
+    "package_name": "com.paypal.android.p2pmobile",
+    "title": "Money Received",
+    "text": "You received $120.00 from Alex for the freelance project.",
+    "posted_at": "2026-10-18T03:50:20.534077+00:00",
+    "event_type": "posted"
+  },
+  {
+    "schema_version": 1,
+    "event_id": "evt-syn-99-0045",
+    "package_name": "com.dhl.express",
+    "title": "Customs Clearance",
+    "text": "Shipment #38192 cleared customs in transit.",
+    "posted_at": "2026-10-19T03:05:00.103442+00:00",
+    "event_type": "posted"
+  },
+  {
+    "schema_version": 1,
+    "event_id": "evt-syn-99-0014",
+    "package_name": "com.telecom.provider",
+    "title": "SIM KYC Renewal",
+    "text": "Kindly complete your re-verification process within 48 hours.",
+    "posted_at": "2026-10-17T21:08:19.719337+00:00",
+    "event_type": "posted"
+  },
+  {
+    "schema_version": 1,
+    "event_id": "evt-dup-1-0126",
+    "package_name": "com.slack",
+    "title": "Daily Standup Reminder",
+    "text": "Please post your standup updates in #engineering.",
+    "posted_at": "2026-10-19T12:00:00+00:00",
+    "event_type": "posted"
+  },
+  {
+    "schema_version": 1,
+    "event_id": "evt-syn-99-0060",
+    "package_name": "com.zomato",
+    "title": "Order Delivered",
+    "text": "Enjoy your meal! Order #4489 has been delivered to your door.",
+    "posted_at": "2026-10-17T23:28:44.215390+00:00",
+    "event_type": "posted"
+  },
+  {
+    "schema_version": 1,
+    "event_id": "evt-syn-99-0098",
+    "package_name": "com.gadgets.direct",
+    "title": "Special Clearance Discount",
+    "text": "Refurbished laptops and smartwatches up to 70% off while supplies last.",
+    "posted_at": "2026-10-17T16:53:32.190654+00:00",
+    "event_type": "posted"
+  },
+  {
+    "schema_version": 1,
+    "event_id": "evt-syn-99-0003",
+    "package_name": "com.github.android",
+    "title": "Pull Request Review",
+    "text": "Please review pull request #142 for the authentication module.",
+    "posted_at": "2026-10-19T04:19:11.019266+00:00",
+    "event_type": "posted"
+  },
+  {
+    "schema_version": 1,
+    "event_id": "evt-syn-99-0055",
+    "package_name": "com.bank.secure",
+    "title": "Transaction Alert",
+    "text": "Debited USD 45.20 at Supermarket using card ending 4092 on 19-Oct.",
+    "posted_at": "2026-10-18T01:51:40.891108+00:00",
+    "event_type": "posted"
+  },
+  {
+    "schema_version": 1,
+    "event_id": "evt-syn-99-0096",
+    "package_name": "com.gaming.arcade",
+    "title": "Free Coins Bonus!",
+    "text": "Claim your 1,000 free bonus coins by logging into Diamond Quest right now!",
+    "posted_at": "2026-10-17T08:04:38.347297+00:00",
+    "event_type": "posted"
+  },
+  {
+    "schema_version": 1,
+    "event_id": "evt-syn-99-0112",
+    "package_name": "com.android.providers.downloads",
+    "title": "Download Complete",
+    "text": "notifyiq_dataset_v1.zip finished downloading (12.4 MB).",
+    "posted_at": "2026-10-18T12:01:39.228452+00:00",
+    "event_type": "posted"
+  },
+  {
+    "schema_version": 1,
+    "event_id": "evt-syn-99-0062",
+    "package_name": "com.telegram.messenger",
+    "title": "Family Chat",
+    "text": "Grandma: Happy birthday! Hope you have a wonderful year ahead!",
+    "posted_at": "2026-10-17T10:00:45.521225+00:00",
+    "event_type": "posted"
+  },
+  {
+    "schema_version": 1,
+    "event_id": "evt-dup-0-0123",
+    "package_name": "com.shopping.mega",
+    "title": "MEGA SALE 50% OFF",
+    "text": "Flash sale ends midnight! Use code SAVE50 on fashion!",
+    "posted_at": "2026-10-19T12:00:00+00:00",
+    "event_type": "posted"
+  },
+  {
+    "schema_version": 1,
+    "event_id": "evt-syn-99-0027",
+    "package_name": "com.zoom.videomeetings",
+    "title": "Webinar Registration",
+    "text": "Register for the Q4 all-hands session before 3 PM today.",
+    "posted_at": "2026-10-18T06:08:26.588001+00:00",
+    "event_type": "posted"
+  },
+  {
+    "schema_version": 1,
+    "event_id": "evt-syn-99-0074",
+    "package_name": "com.telegram.messenger",
+    "title": "Family Chat",
+    "text": "Grandma: Happy birthday! Hope you have a wonderful year ahead!",
+    "posted_at": "2026-10-17T05:13:41.235377+00:00",
+    "event_type": "posted"
+  },
+  {
+    "schema_version": 1,
+    "event_id": "evt-syn-99-0081",
+    "package_name": "com.signal.messenger",
+    "title": "Lucas",
+    "text": "Sent the encrypted notes for the meeting yesterday.",
+    "posted_at": "2026-10-17T13:57:30.225025+00:00",
+    "event_type": "posted"
+  },
+  {
+    "schema_version": 1,
+    "event_id": "evt-syn-99-0120",
+    "package_name": "com.mystery.service",
+    "title": "Sync Status",
+    "text": "Service ping completed with code 200.",
+    "posted_at": "2026-10-18T14:11:28.447278+00:00",
+    "event_type": "posted"
+  },
+  {
+    "schema_version": 1,
+    "event_id": "evt-syn-99-0079",
+    "package_name": "com.discord",
+    "title": "Gaming Guild",
+    "text": "Server announcement: Tournament starts tonight at 9 PM.",
+    "posted_at": "2026-10-17T13:08:03.726159+00:00",
+    "event_type": "posted"
+  },
+  {
+    "schema_version": 1,
+    "event_id": "evt-syn-99-0024",
+    "package_name": "com.google.android.apps.docs",
+    "title": "Document Approval",
+    "text": "Please review and approve the project budget proposal before 5 PM.",
+    "posted_at": "2026-10-18T12:11:38.248428+00:00",
+    "event_type": "posted"
+  },
+  {
+    "schema_version": 1,
+    "event_id": "evt-syn-99-0077",
+    "package_name": "com.facebook.katana",
+    "title": "Group Update",
+    "text": "5 new posts in Open Source Developers Group today.",
+    "posted_at": "2026-10-18T08:28:08.385687+00:00",
+    "event_type": "posted"
+  },
+  {
+    "schema_version": 1,
+    "event_id": "evt-syn-99-0087",
+    "package_name": "com.travel.booking",
+    "title": "Unbeatable Flight Deals",
+    "text": "Fly to Bali starting at just $299 roundtrip. Book before seats run out!",
+    "posted_at": "2026-10-17T05:08:07.753553+00:00",
+    "event_type": "posted"
+  },
+  {
+    "schema_version": 1,
+    "event_id": "evt-syn-99-0065",
+    "package_name": "com.linkedin.android",
+    "title": "Connection Request",
+    "text": "Michael Chang, Senior ML Engineer, wants to connect with you.",
+    "posted_at": "2026-10-17T14:55:23.352720+00:00",
+    "event_type": "posted"
+  },
+  {
+    "schema_version": 1,
+    "event_id": "evt-syn-99-0103",
+    "package_name": "com.google.android.apps.authenticator2",
+    "title": "2FA Key Synced",
+    "text": "Cloud backup for two-factor authentication accounts completed.",
+    "posted_at": "2026-10-18T16:21:00.355762+00:00",
+    "event_type": "posted"
+  },
+  {
+    "schema_version": 1,
+    "event_id": "evt-syn-99-0106",
+    "package_name": "com.google.android.gms",
+    "title": "Security Alert",
+    "text": "New sign-in detected on Windows Chrome near Mumbai, India.",
+    "posted_at": "2026-10-16T14:35:17.078084+00:00",
+    "event_type": "posted"
+  },
+  {
+    "schema_version": 1,
+    "event_id": "evt-syn-99-0093",
+    "package_name": "com.gadgets.direct",
+    "title": "Special Clearance Discount",
+    "text": "Refurbished laptops and smartwatches up to 70% off while supplies last.",
+    "posted_at": "2026-10-18T15:34:21.175012+00:00",
+    "event_type": "posted"
+  },
+  {
+    "schema_version": 1,
+    "event_id": "evt-syn-99-0115",
+    "package_name": "com.test.debug",
+    "title": "---",
+    "text": "...",
+    "posted_at": "2026-10-17T20:42:57.085768+00:00",
+    "event_type": "posted"
+  },
+  {
+    "schema_version": 1,
+    "event_id": "evt-syn-99-0019",
+    "package_name": "com.tax.portal",
+    "title": "Filing Reminder",
+    "text": "Please upload your tax declarations and receipts before tomorrow noon.",
+    "posted_at": "2026-10-19T13:21:07.692547+00:00",
+    "event_type": "posted"
+  },
+  {
+    "schema_version": 1,
+    "event_id": "evt-syn-99-0033",
+    "package_name": "com.airline.fly",
+    "title": "Boarding Pass Ready",
+    "text": "Check-in successful. Your flight AI-202 departs at Terminal 3 Gate 14.",
+    "posted_at": "2026-10-17T16:27:29.315072+00:00",
+    "event_type": "posted"
+  },
+  {
+    "schema_version": 1,
+    "event_id": "evt-syn-99-0009",
+    "package_name": "com.health.portal",
+    "title": "Appointment Confirmation",
+    "text": "Confirm your dental consultation scheduled for tomorrow at 10:00 AM.",
+    "posted_at": "2026-10-18T22:19:11.361960+00:00",
+    "event_type": "posted"
+  },
+  {
+    "schema_version": 1,
+    "event_id": "evt-syn-99-0061",
+    "package_name": "com.twitter.android",
+    "title": "New Mention",
+    "text": "TechDaily mentioned you in: 'Exciting AI architectures for edge devices!'",
+    "posted_at": "2026-10-16T22:39:32.525432+00:00",
+    "event_type": "posted"
+  },
+  {
+    "schema_version": 1,
+    "event_id": "evt-syn-99-0086",
+    "package_name": "com.fashion.store",
+    "title": "Autumn Collection Dropped",
+    "text": "Explore fresh seasonal styles with exclusive 20% member savings.",
+    "posted_at": "2026-10-16T21:48:48.412470+00:00",
+    "event_type": "posted"
+  },
+  {
+    "schema_version": 1,
+    "event_id": "evt-dup-1-0124",
+    "package_name": "com.shopping.mega",
+    "title": "MEGA SALE 50% OFF",
+    "text": "Flash sale ends midnight! Use code SAVE50 on fashion!",
+    "posted_at": "2026-10-19T12:00:00+00:00",
+    "event_type": "posted"
+  },
+  {
+    "schema_version": 1,
+    "event_id": "evt-syn-99-0059",
+    "package_name": "com.airline.fly",
+    "title": "Boarding Pass Ready",
+    "text": "Check-in successful. Your flight AI-202 departs at Terminal 3 Gate 14.",
+    "posted_at": "2026-10-18T10:09:03.295280+00:00",
+    "event_type": "posted"
+  },
+  {
+    "schema_version": 1,
+    "event_id": "evt-syn-99-0006",
+    "package_name": "com.google.android.calendar",
+    "title": "RSVP Required",
+    "text": "Please respond to the invitation for Strategy Sync by 4 PM.",
+    "posted_at": "2026-10-17T23:10:21.235939+00:00",
+    "event_type": "posted"
+  },
+  {
+    "schema_version": 1,
+    "event_id": "evt-syn-99-0029",
+    "package_name": "com.tax.portal",
+    "title": "Filing Reminder",
+    "text": "Please upload your tax declarations and receipts before tomorrow noon.",
+    "posted_at": "2026-10-17T14:25:28.037912+00:00",
+    "event_type": "posted"
+  },
+  {
+    "schema_version": 1,
+    "event_id": "evt-syn-99-0037",
+    "package_name": "com.ubercab",
+    "title": "Ride Receipt",
+    "text": "Your trip with Uber on Monday cost $18.50. Thank you for riding.",
+    "posted_at": "2026-10-16T21:11:31.726400+00:00",
+    "event_type": "posted"
+  },
+  {
+    "schema_version": 1,
+    "event_id": "evt-syn-99-0016",
+    "package_name": "com.tax.portal",
+    "title": "Filing Reminder",
+    "text": "Please upload your tax declarations and receipts before tomorrow noon.",
+    "posted_at": "2026-10-17T13:11:47.602643+00:00",
+    "event_type": "posted"
+  },
+  {
+    "schema_version": 1,
+    "event_id": "evt-syn-99-0104",
+    "package_name": "com.qualcomm.location",
+    "title": "GPS Active",
+    "text": "Navigation is using precise location in the background.",
+    "posted_at": "2026-10-17T16:51:42.710534+00:00",
+    "event_type": "posted"
+  },
+  {
+    "schema_version": 1,
+    "event_id": "evt-syn-99-0091",
+    "package_name": "com.shopping.mega",
+    "title": "MEGA SALE 50% OFF",
+    "text": "Flash sale ends midnight! Use code SAVE50 on fashion and electronics!",
+    "posted_at": "2026-10-19T05:49:23.945239+00:00",
+    "event_type": "posted"
+  },
+  {
+    "schema_version": 1,
+    "event_id": "evt-syn-99-0114",
+    "package_name": "com.google.android.apps.authenticator2",
+    "title": "2FA Key Synced",
+    "text": "Cloud backup for two-factor authentication accounts completed.",
+    "posted_at": "2026-10-19T00:41:40.253971+00:00",
+    "event_type": "posted"
+  },
+  {
+    "schema_version": 1,
+    "event_id": "evt-dup-0-0121",
+    "package_name": "com.bank.secure",
+    "title": "Transaction Alert",
+    "text": "Debited USD 12.00 at Metro Transit on 19-Oct.",
+    "posted_at": "2026-10-19T12:00:00+00:00",
+    "event_type": "posted"
+  },
+  {
+    "schema_version": 1,
+    "event_id": "evt-syn-99-0111",
+    "package_name": "com.google.android.apps.authenticator2",
+    "title": "2FA Key Synced",
+    "text": "Cloud backup for two-factor authentication accounts completed.",
+    "posted_at": "2026-10-18T07:50:02.677956+00:00",
+    "event_type": "posted"
+  },
+  {
+    "schema_version": 1,
+    "event_id": "evt-syn-99-0042",
+    "package_name": "com.dhl.express",
+    "title": "Customs Clearance",
+    "text": "Shipment #38192 cleared customs in transit.",
+    "posted_at": "2026-10-18T03:39:55.048955+00:00",
+    "event_type": "posted"
+  },
+  {
+    "schema_version": 1,
+    "event_id": "evt-syn-99-0032",
+    "package_name": "com.airline.fly",
+    "title": "Boarding Pass Ready",
+    "text": "Check-in successful. Your flight AI-202 departs at Terminal 3 Gate 14.",
+    "posted_at": "2026-10-19T08:03:52.506775+00:00",
+    "event_type": "posted"
+  },
+  {
+    "schema_version": 1,
+    "event_id": "evt-syn-99-0083",
+    "package_name": "com.telegram.messenger",
+    "title": "Family Chat",
+    "text": "Grandma: Happy birthday! Hope you have a wonderful year ahead!",
+    "posted_at": "2026-10-16T22:05:24.457042+00:00",
+    "event_type": "posted"
+  },
+  {
+    "schema_version": 1,
+    "event_id": "evt-syn-99-0095",
+    "package_name": "com.pizza.hut",
+    "title": "Buy 1 Get 1 Free",
+    "text": "Tasty Tuesday is here! Buy any medium pizza and get another free!",
+    "posted_at": "2026-10-16T18:48:38.570955+00:00",
+    "event_type": "posted"
+  },
+  {
+    "schema_version": 1,
+    "event_id": "evt-syn-99-0048",
+    "package_name": "com.paypal.android.p2pmobile",
+    "title": "Money Received",
+    "text": "You received $120.00 from Alex for the freelance project.",
+    "posted_at": "2026-10-16T14:38:18.091123+00:00",
+    "event_type": "posted"
+  },
+  {
+    "schema_version": 1,
+    "event_id": "evt-syn-99-0071",
+    "package_name": "com.discord",
+    "title": "Gaming Guild",
+    "text": "Server announcement: Tournament starts tonight at 9 PM.",
+    "posted_at": "2026-10-16T16:36:08.286495+00:00",
+    "event_type": "posted"
+  },
+  {
+    "schema_version": 1,
+    "event_id": "evt-syn-99-0080",
+    "package_name": "com.signal.messenger",
+    "title": "Lucas",
+    "text": "Sent the encrypted notes for the meeting yesterday.",
+    "posted_at": "2026-10-16T23:52:16.980834+00:00",
+    "event_type": "posted"
+  }
+]

@@ -1,0 +1,697 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>NotifyIQ — Real-Time Mobile Companion</title>
+  
+  <!-- PWA Meta Tags -->
+  <link rel="manifest" href="/static/mobile/manifest.json">
+  <meta name="theme-color" content="#4F46E5">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="NotifyIQ">
+  <link rel="apple-touch-icon" href="/static/icons/icon-192.png">
+
+  <!-- Inter Font -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --bg: #0B0F19;
+      --card-bg: #151D2F;
+      --primary: #6366F1;
+      --primary-hover: #4F46E5;
+      --accent: #06B6D4;
+      --text: #F8FAFC;
+      --text-muted: #94A3B8;
+      --border: #232E45;
+      --red: #EF4444;
+      --amber: #F59E0B;
+      --green: #10B981;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow-x: hidden;
+      padding-bottom: 75px; /* For bottom nav bar */
+    }
+
+    /* Top App Header */
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      background: rgba(15, 23, 42, 0.85);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border);
+      padding: 14px 18px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .brand-icon {
+      width: 34px;
+      height: 34px;
+      background: linear-gradient(135deg, #6366F1, #4F46E5);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      box-shadow: 0 4px 12px rgba(99, 102, 241, 0.35);
+    }
+
+    .brand-text h1 {
+      font-size: 1.1rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+
+    .connection-badge {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      padding: 4px 10px;
+      border-radius: 20px;
+      background: rgba(16, 185, 129, 0.12);
+      color: var(--green);
+      border: 1px solid rgba(16, 185, 129, 0.25);
+    }
+
+    .connection-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background-color: var(--green);
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0% { transform: scale(0.95); opacity: 0.7; }
+      50% { transform: scale(1.3); opacity: 1; }
+      100% { transform: scale(0.95); opacity: 0.7; }
+    }
+
+    /* Install PWA Prompt Banner */
+    #installBanner {
+      display: none;
+      background: linear-gradient(135deg, rgba(99, 102, 241, 0.2), rgba(6, 182, 212, 0.15));
+      border: 1px solid rgba(99, 102, 241, 0.35);
+      border-radius: 12px;
+      margin: 12px 16px;
+      padding: 14px;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    #installBanner button {
+      background: var(--primary);
+      color: white;
+      border: none;
+      padding: 8px 14px;
+      border-radius: 8px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    /* Main Container */
+    main {
+      padding: 14px 16px;
+      flex: 1;
+    }
+
+    .tab-content {
+      display: none;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+
+    /* Live Feed Cards */
+    .notif-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 14px 16px;
+      margin-bottom: 12px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+      transition: transform 0.15s ease, border-color 0.15s ease;
+      animation: slideIn 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    @keyframes slideIn {
+      from { transform: translateY(-10px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+
+    .card-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 6px;
+    }
+
+    .pkg-info {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .badge-prio {
+      font-size: 0.75rem;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 6px;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .prio-high {
+      background: rgba(239, 68, 68, 0.18);
+      color: #F87171;
+      border: 1px solid rgba(239, 68, 68, 0.35);
+    }
+
+    .prio-med {
+      background: rgba(245, 158, 11, 0.18);
+      color: #FBBF24;
+      border: 1px solid rgba(245, 158, 11, 0.35);
+    }
+
+    .prio-low {
+      background: rgba(16, 185, 129, 0.18);
+      color: #34D399;
+      border: 1px solid rgba(16, 185, 129, 0.35);
+    }
+
+    .card-title {
+      font-size: 0.98rem;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 4px;
+    }
+
+    .card-body {
+      font-size: 0.88rem;
+      color: #CBD5E1;
+      line-height: 1.4;
+      margin-bottom: 10px;
+    }
+
+    .card-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-top: 8px;
+      border-top: 1px solid rgba(255,255,255,0.06);
+    }
+
+    .badge-cat {
+      font-size: 0.72rem;
+      background: rgba(99, 102, 241, 0.15);
+      color: #A5B4FC;
+      border: 1px solid rgba(99, 102, 241, 0.3);
+      padding: 2px 7px;
+      border-radius: 4px;
+      font-weight: 600;
+      text-transform: capitalize;
+    }
+
+    .reasons-box {
+      margin-top: 8px;
+      padding: 8px 10px;
+      background: rgba(0,0,0,0.25);
+      border-left: 3px solid var(--primary);
+      border-radius: 0 6px 6px 0;
+      font-size: 0.76rem;
+      color: #CBD5E1;
+    }
+
+    /* Simulation Form */
+    .form-group {
+      margin-bottom: 14px;
+    }
+
+    label {
+      display: block;
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+    }
+
+    input, textarea, select {
+      width: 100%;
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      color: var(--text);
+      padding: 12px;
+      font-size: 0.92rem;
+    }
+
+    input:focus, textarea:focus, select:focus {
+      outline: none;
+      border-color: var(--primary);
+    }
+
+    .btn-primary {
+      width: 100%;
+      background: linear-gradient(135deg, #6366F1, #4F46E5);
+      color: white;
+      border: none;
+      border-radius: 10px;
+      padding: 14px;
+      font-size: 0.95rem;
+      font-weight: 700;
+      cursor: pointer;
+      box-shadow: 0 4px 16px rgba(99, 102, 241, 0.3);
+    }
+
+    /* Bottom Navigation Bar */
+    nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 65px;
+      background: rgba(15, 23, 42, 0.95);
+      backdrop-filter: blur(20px);
+      border-top: 1px solid var(--border);
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      z-index: 50;
+    }
+
+    .nav-btn {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      font-size: 0.72rem;
+      font-weight: 600;
+      cursor: pointer;
+      flex: 1;
+      padding: 6px 0;
+    }
+
+    .nav-btn.active {
+      color: var(--primary);
+    }
+
+    .nav-btn svg {
+      width: 22px;
+      height: 22px;
+      fill: currentColor;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Header -->
+  <header>
+    <div class="brand">
+      <div class="brand-icon">🔔</div>
+      <div class="brand-text">
+        <h1>NotifyIQ</h1>
+      </div>
+    </div>
+    <div class="connection-badge" id="statusBadge">
+      <span class="connection-dot" id="statusDot"></span>
+      <span id="statusText">Connecting...</span>
+    </div>
+  </header>
+
+  <!-- PWA Install Banner -->
+  <div id="installBanner">
+    <div>
+      <div style="font-weight: 700; font-size: 0.88rem;">📲 Install Mobile App</div>
+      <div style="font-size: 0.76rem; color: var(--text-muted);">Add NotifyIQ to your home screen</div>
+    </div>
+    <button id="btnInstallPwa">Install Now</button>
+  </div>
+
+  <main>
+    <!-- TAB 1: LIVE FEED -->
+    <section id="tab-live" class="tab-content active">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
+        <h2 style="font-size: 1.15rem; font-weight: 700;">Live Prioritized Stream</h2>
+        <button id="btnPushPerm" style="background: rgba(99,102,241,0.15); border: 1px solid rgba(99,102,241,0.3); color: #818CF8; border-radius: 6px; padding: 4px 8px; font-size: 0.75rem; font-weight: 600; cursor: pointer;">
+          🔔 Enable Push
+        </button>
+      </div>
+      <div id="notifList">
+        <!-- Notification Cards Injected Here -->
+      </div>
+    </section>
+
+    <!-- TAB 2: ACTIONS -->
+    <section id="tab-actions" class="tab-content">
+      <h2 style="font-size: 1.15rem; font-weight: 700; margin-bottom: 14px;">Detected Action Items</h2>
+      <div id="actionList">
+        <!-- Action Items Injected Here -->
+      </div>
+    </section>
+
+    <!-- TAB 3: SIMULATE / CAPTURE -->
+    <section id="tab-capture" class="tab-content">
+      <h2 style="font-size: 1.15rem; font-weight: 700; margin-bottom: 6px;">Live Mobile Capture</h2>
+      <p style="font-size: 0.82rem; color: var(--text-muted); margin-bottom: 14px;">
+        Test local AI classification & priority scoring in real time.
+      </p>
+
+      <form id="simulateForm">
+        <div class="form-group">
+          <label>Source App</label>
+          <select id="simPackage">
+            <option value="com.google.android.gm">Gmail (Work / University)</option>
+            <option value="com.bank.secure">Chase Secure Banking</option>
+            <option value="com.whatsapp">WhatsApp Messenger</option>
+            <option value="com.shopping.deals">Amazon Deals & Shopping</option>
+            <option value="com.slack">Slack Team Sync</option>
+            <option value="com.android.systemui">Android System Status</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Notification Title</label>
+          <input type="text" id="simTitle" placeholder="e.g. Action Required: Review Budget" required>
+        </div>
+
+        <div class="form-group">
+          <label>Notification Text</label>
+          <textarea id="simText" rows="3" placeholder="e.g. Please approve the quarterly report before tomorrow 5 PM." required></textarea>
+        </div>
+
+        <button type="submit" class="btn-primary" id="btnSimulate">
+          ⚡ Process & Prioritize Locally
+        </button>
+      </form>
+    </section>
+
+    <!-- TAB 4: COMPANION & SETTINGS -->
+    <section id="tab-companion" class="tab-content">
+      <h2 style="font-size: 1.15rem; font-weight: 700; margin-bottom: 10px;">Android Companion</h2>
+      <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 16px;">
+        NotifyIQ operates with native Kotlin Android integration using <code>NotificationListenerService</code>.
+      </p>
+
+      <div style="background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; padding: 14px; margin-bottom: 14px;">
+        <div style="font-weight: 700; font-size: 0.95rem; margin-bottom: 4px;">📦 Export Android JSON Stream</div>
+        <div style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 10px;">
+          Download stored notifications directly to your phone's storage.
+        </div>
+        <a href="/api/v1/notifications?limit=100" download="notifyiq_export.json" style="display: block; text-align: center; text-decoration: none; background: rgba(99,102,241,0.2); border: 1px solid var(--primary); color: #C7D2FE; padding: 10px; border-radius: 8px; font-weight: 600; font-size: 0.85rem;">
+          📥 Download Notifications (JSON)
+        </a>
+      </div>
+
+      <div style="background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; padding: 14px;">
+        <div style="font-weight: 700; font-size: 0.95rem; margin-bottom: 4px;">🔒 Privacy Status</div>
+        <div style="font-size: 0.8rem; color: var(--text-muted);">
+          ✔ 100% Local SQLite Execution<br>
+          ✔ Zero Cloud LLMs<br>
+          ✔ Sensitive Information Redaction Active
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Bottom Nav -->
+  <nav>
+    <button class="nav-btn active" onclick="switchTab('live')">
+      <svg viewBox="0 0 24 24"><path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.89 2 2 2zm6-6v-5c0-3.07-1.64-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/></svg>
+      <span>Stream</span>
+    </button>
+    <button class="nav-btn" onclick="switchTab('actions')">
+      <svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-9 14l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
+      <span>Actions</span>
+    </button>
+    <button class="nav-btn" onclick="switchTab('capture')">
+      <svg viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+      <span>Capture</span>
+    </button>
+    <button class="nav-btn" onclick="switchTab('companion')">
+      <svg viewBox="0 0 24 24"><path d="M17 1.01L7 1c-1.1 0-2 .9-2 2v18c0 1.1.9 2 2 2h10c1.1 0 2-.9 2-2V3c0-1.1-.9-1.99-2-1.99zM17 19H7V5h10v14z"/></svg>
+      <span>Device</span>
+    </button>
+  </nav>
+
+  <script>
+    // Register Service Worker for PWA
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/static/mobile/service-worker.js')
+          .then(reg => console.log('Service Worker Registered'))
+          .catch(err => console.log('SW registration failed:', err));
+      });
+    }
+
+    // PWA Install Prompt Handler
+    let deferredPrompt;
+    const installBanner = document.getElementById('installBanner');
+    const btnInstallPwa = document.getElementById('btnInstallPwa');
+
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredPrompt = e;
+      installBanner.style.display = 'flex';
+    });
+
+    btnInstallPwa.addEventListener('click', async () => {
+      if (deferredPrompt) {
+        deferredPrompt.prompt();
+        const { outcome } = await deferredPrompt.userChoice;
+        if (outcome === 'accepted') {
+          installBanner.style.display = 'none';
+        }
+        deferredPrompt = null;
+      }
+    });
+
+    // Tab Navigation
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+      document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('active'));
+      document.getElementById(`tab-${tabId}`).classList.add('active');
+      event.currentTarget.classList.add('active');
+
+      if (tabId === 'actions') loadActions();
+      if (tabId === 'live') loadNotifications();
+    }
+
+    // Web Notifications API
+    document.getElementById('btnPushPerm').addEventListener('click', async () => {
+      if ('Notification' in window) {
+        const perm = await Notification.requestPermission();
+        if (perm === 'granted') {
+          alert('Push Notifications enabled! You will receive high-priority alerts.');
+          new Notification('NotifyIQ Enabled', {
+            body: 'Real-time high-priority alerts will appear here.',
+            icon: '/static/icons/icon-192.png'
+          });
+        }
+      }
+    });
+
+    // Real-Time WebSocket Connection
+    let ws;
+    function connectWebSocket() {
+      const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+      const wsUrl = `${protocol}//${window.location.host}/ws/notifications`;
+      ws = new WebSocket(wsUrl);
+
+      ws.onopen = () => {
+        document.getElementById('statusText').innerText = 'Live Sync';
+        document.getElementById('statusDot').style.backgroundColor = '#10B981';
+      };
+
+      ws.onmessage = (event) => {
+        const data = JSON.parse(event.data);
+        if (data.type === 'NEW_NOTIFICATION') {
+          renderNotificationCard(data.payload, true);
+          // Haptic Feedback & Audio notification
+          if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
+          if (Notification.permission === 'granted' && data.payload.priority_level === 'high') {
+            new Notification(`🔴 ${data.payload.title || 'High Priority Alert'}`, {
+              body: data.payload.text || 'Action required',
+              icon: '/static/icons/icon-192.png'
+            });
+          }
+        }
+      };
+
+      ws.onclose = () => {
+        document.getElementById('statusText').innerText = 'Reconnecting...';
+        document.getElementById('statusDot').style.backgroundColor = '#EF4444';
+        setTimeout(connectWebSocket, 3000);
+      };
+    }
+
+    connectWebSocket();
+
+    // Load initial notifications
+    async function loadNotifications() {
+      try {
+        const res = await fetch('/api/v1/notifications?limit=25');
+        const data = await res.json();
+        const list = document.getElementById('notifList');
+        list.innerHTML = '';
+        data.items.forEach(item => renderNotificationCard(item, false));
+      } catch (err) {
+        console.error('Failed to load notifications:', err);
+      }
+    }
+
+    function renderNotificationCard(item, prepend = false) {
+      const list = document.getElementById('notifList');
+      const card = document.createElement('div');
+      card.className = 'notif-card';
+
+      const prioClass = item.priority_level === 'high' ? 'prio-high' : (item.priority_level === 'medium' ? 'prio-med' : 'prio-low');
+      const prioIcon = item.priority_level === 'high' ? '🔴' : (item.priority_level === 'medium' ? '🟡' : '🟢');
+
+      card.innerHTML = `
+        <div class="card-top">
+          <div class="pkg-info">📱 ${item.package_name.split('.').slice(-2).join('.')}</div>
+          <div class="badge-prio ${prioClass}">
+            ${prioIcon} ${item.priority_level.toUpperCase()} (${Math.round(item.priority_score)})
+          </div>
+        </div>
+        <div class="card-title">${item.title || '(No Title)'}</div>
+        <div class="card-body">${item.text || ''}</div>
+        ${item.action_detected ? `<div style="font-size:0.8rem; color:#818CF8; font-weight:600; margin-bottom:6px;">⚡ Action: ${item.action_text || item.action_type}</div>` : ''}
+        ${item.deadline_status === 'resolved' ? `<div style="font-size:0.8rem; color:#FBBF24; font-weight:600; margin-bottom:6px;">⏰ Deadline: ${item.deadline_text}</div>` : ''}
+        <div class="reasons-box">
+          💡 ${Array.isArray(item.priority_reasons) ? item.priority_reasons.join('; ') : item.priority_reasons}
+        </div>
+        <div class="card-footer">
+          <span class="badge-cat">${item.category.replace('_', ' ')}</span>
+          <span style="font-size: 0.72rem; color: var(--text-muted);">${(item.received_at || '').substring(11, 16)}</span>
+        </div>
+      `;
+
+      if (prepend && list.firstChild) {
+        list.insertBefore(card, list.firstChild);
+      } else {
+        list.appendChild(card);
+      }
+    }
+
+    // Load Actions
+    async function loadActions() {
+      try {
+        const res = await fetch('/api/v1/actions?status=open');
+        const actions = await res.json();
+        const container = document.getElementById('actionList');
+        container.innerHTML = '';
+
+        if (actions.length === 0) {
+          container.innerHTML = '<div style="color:var(--text-muted); font-size:0.9rem; text-align:center; padding:30px;">🎉 No pending actions!</div>';
+          return;
+        }
+
+        actions.forEach(a => {
+          const div = document.createElement('div');
+          div.className = 'notif-card';
+          div.innerHTML = `
+            <div style="font-weight:700; font-size:0.95rem; margin-bottom:4px;">⚡ ${a.action_text}</div>
+            <div style="font-size:0.8rem; color:var(--text-muted); margin-bottom:8px;">Source: ${a.package_name || 'App'}</div>
+            ${a.deadline_at ? `<div style="font-size:0.8rem; color:#FBBF24; font-weight:600; margin-bottom:8px;">⏰ Due: ${a.deadline_at.substring(0, 16).replace('T', ' ')}</div>` : ''}
+            <button onclick="completeAction('${a.id}')" style="background:#10B981; color:white; border:none; padding:8px 14px; border-radius:6px; font-weight:600; font-size:0.82rem; cursor:pointer;">
+              ✓ Mark Completed
+            </button>
+          `;
+          container.appendChild(div);
+        });
+      } catch (err) {
+        console.error('Failed to load actions:', err);
+      }
+    }
+
+    async function completeAction(actionId) {
+      await fetch(`/api/v1/actions/${actionId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: 'completed' })
+      });
+      loadActions();
+    }
+
+    // Form Simulation
+    document.getElementById('simulateForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('btnSimulate');
+      btn.disabled = true;
+      btn.innerText = 'Prioritizing...';
+
+      const payload = {
+        notification: {
+          schema_version: 1,
+          event_id: 'mob-' + Math.random().toString(36).substring(2, 9),
+          package_name: document.getElementById('simPackage').value,
+          title: document.getElementById('simTitle').value,
+          text: document.getElementById('simText').value,
+          posted_at: new Date().toISOString(),
+          event_type: 'posted'
+        },
+        persist: true
+      };
+
+      try {
+        const res = await fetch('/api/v1/notifications/process', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        const result = await res.json();
+        switchTab('live');
+        document.getElementById('simTitle').value = '';
+        document.getElementById('simText').value = '';
+      } catch (err) {
+        alert('Processing failed: ' + err.message);
+      } finally {
+        btn.disabled = false;
+        btn.innerText = '⚡ Process & Prioritize Locally';
+      }
+    });
+
+    // Initial load
+    loadNotifications();
+  </script>
+</body>
+</html>

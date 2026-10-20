@@ -1,0 +1,10 @@
+<resources>
+    <string name="app_name">NotifyIQ Companion</string>
+    <string name="service_name">NotifyIQ Notification Listener</string>
+    <string name="app_description">Privacy-first companion app. Captures user-authorized notification events locally and exports them for offline AI processing.</string>
+    <string name="btn_open_settings">Grant Notification Access</string>
+    <string name="btn_export_json">Export Captured Events (JSON)</string>
+    <string name="btn_clear_data">Clear Local History</string>
+    <string name="status_granted">Notification Access: GRANTED</string>
+    <string name="status_not_granted">Notification Access: NOT GRANTED (Tap below)</string>
+</resources>
