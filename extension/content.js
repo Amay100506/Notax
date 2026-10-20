@@ -7,7 +7,14 @@
   if (window.__notifyiq_injected) return;
   window.__notifyiq_injected = true;
 
-  const BACKEND_URL = "http://127.0.0.1:8000";
+  let BACKEND_URL = "http://127.0.0.1:8000";
+  if (typeof chrome !== "undefined" && chrome.storage && chrome.storage.local) {
+    chrome.storage.local.get(["backendUrl"], (data) => {
+      if (data && data.backendUrl) {
+        BACKEND_URL = data.backendUrl;
+      }
+    });
+  }
 
   // Identify Store
   function getStoreName() {
