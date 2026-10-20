@@ -2,57 +2,125 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>NotifyIQ Shopping Assistant</title>
+  <title>NotifyIQ AI Assistant & Price Tracker</title>
   <link rel="stylesheet" href="popup.css">
 </head>
 <body>
   <div class="popup-container">
+    <!-- Header -->
     <header class="popup-header">
       <div class="header-brand">
         <span class="brand-icon">🔔</span>
-        <span class="brand-name">NotifyIQ</span>
+        <div>
+          <div class="brand-name">NotifyIQ</div>
+          <div class="brand-sub">AI Copilot v1.1</div>
+        </div>
       </div>
       <div id="backend-status" class="status-indicator status-offline">Connecting...</div>
     </header>
 
+    <!-- Navigation Tabs -->
+    <nav class="nav-tabs">
+      <button class="nav-tab active" data-tab="tab-briefing">⚡ Daily Briefing</button>
+      <button class="nav-tab" data-tab="tab-actions">📋 Actions & Cal</button>
+      <button class="nav-tab" data-tab="tab-deals">🛒 Deals & Coupons</button>
+      <button class="nav-tab" data-tab="tab-settings">⚙️ Settings</button>
+    </nav>
+
     <main class="popup-body">
-      <div class="hero-card">
-        <div class="hero-title">Shopping Intelligence</div>
-        <div class="hero-subtitle">Tracking Amazon, Flipkart & Myntra</div>
-        <div class="stats-row">
-          <div class="stat-item">
-            <span id="active-deals-count" class="stat-val">-</span>
-            <span class="stat-lbl">Active Deals</span>
+      <!-- TAB 1: DAILY BRIEFING -->
+      <section id="tab-briefing" class="tab-pane active">
+        <div class="briefing-card">
+          <div class="briefing-header">
+            <span id="digest-greeting" class="briefing-greeting">🌅 Daily Executive Briefing</span>
+            <span id="digest-overload-badge" class="overload-badge">-- Overload</span>
           </div>
-          <div class="stat-item">
-            <span id="coupons-count" class="stat-val">-</span>
-            <span class="stat-lbl">Coupons</span>
+          <p id="digest-summary" class="briefing-text">Fetching executive briefing from local AI...</p>
+          <div class="briefing-stats">
+            <div class="stat-pill">
+              <span class="stat-pill-val" id="briefing-urgent-count">-</span>
+              <span class="stat-pill-lbl">Urgent Alerts</span>
+            </div>
+            <div class="stat-pill">
+              <span class="stat-pill-val" id="briefing-pending-actions">-</span>
+              <span class="stat-pill-lbl">Open Actions</span>
+            </div>
           </div>
         </div>
-      </div>
 
-      <div class="section-title">🎟️ Active Store Coupons</div>
-      <div id="coupons-list" class="coupons-scroll">
-        <div class="loading-text">Loading coupons...</div>
-      </div>
-
-      <button id="open-dashboard-btn" class="btn-action">
-        📊 Open Full AI Dashboard
-      </button>
-
-      <div style="margin-top: 10px; padding: 8px; background: rgba(255,255,255,0.05); border-radius: 6px;">
-        <div style="font-size: 11px; color: #94A3B8; margin-bottom: 4px;">Backend Server (for Mobile / LAN):</div>
-        <div style="display: flex; gap: 4px;">
-          <input id="backend-url-input" type="text" value="http://127.0.0.1:8000" style="flex: 1; font-size: 11px; background: #0F172A; color: #F8FAFC; border: 1px solid #334155; border-radius: 4px; padding: 4px 6px;">
-          <button id="save-backend-url-btn" style="font-size: 11px; background: #6366F1; color: white; border: none; border-radius: 4px; padding: 4px 8px; cursor: pointer;">Save</button>
+        <div class="quick-links-row">
+          <button id="open-dashboard-btn" class="btn-primary">
+            📊 Open Full AI Dashboard
+          </button>
         </div>
-      </div>
+      </section>
+
+      <!-- TAB 2: ACTIONS & CALENDAR SYNC -->
+      <section id="tab-actions" class="tab-pane">
+        <div class="section-header">
+          <span class="section-title">Pending Action Items</span>
+          <span id="actions-counter" class="counter-badge">0</span>
+        </div>
+        <div id="actions-list" class="items-scroll">
+          <div class="loading-text">Loading actionable tasks...</div>
+        </div>
+      </section>
+
+      <!-- TAB 3: DEALS & STORE COUPONS -->
+      <section id="tab-deals" class="tab-pane">
+        <div class="hero-card">
+          <div class="hero-title">Shopping Intelligence</div>
+          <div class="hero-subtitle">Live on Amazon, Flipkart, Myntra & Ajio</div>
+          <div class="stats-row">
+            <div class="stat-item">
+              <span id="active-deals-count" class="stat-val">-</span>
+              <span class="stat-lbl">Active Deals</span>
+            </div>
+            <div class="stat-item">
+              <span id="coupons-count" class="stat-val">-</span>
+              <span class="stat-lbl">Coupons</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="section-header">
+          <span class="section-title">🎟️ Active Store Coupons</span>
+        </div>
+        <div id="coupons-list" class="coupons-scroll">
+          <div class="loading-text">Loading coupons...</div>
+        </div>
+        <div class="deals-tip">
+          💡 <em>Visit any product page on Amazon, Flipkart or Myntra to see price history charts & set target price drop alerts!</em>
+        </div>
+      </section>
+
+      <!-- TAB 4: SETTINGS & SYNC -->
+      <section id="tab-settings" class="tab-pane">
+        <div class="settings-box">
+          <label class="settings-lbl">Local / LAN Backend URL:</label>
+          <div class="settings-input-group">
+            <input id="backend-url-input" type="text" value="http://127.0.0.1:8000">
+            <button id="save-backend-url-btn">Save</button>
+          </div>
+          <div class="settings-hint">Point to your PC's Wi-Fi IP (e.g. http://192.168.1.5:8000) for cross-device sync.</div>
+        </div>
+
+        <div class="settings-box" style="margin-top: 10px;">
+          <label class="settings-lbl">Alert Dispatch Webhooks:</label>
+          <div class="webhook-status-row">
+            <div class="webhook-badge" id="tg-status-badge">Telegram: Checking...</div>
+            <div class="webhook-badge" id="dc-status-badge">Discord: Checking...</div>
+          </div>
+        </div>
+      </section>
     </main>
 
+    <!-- Footer -->
     <footer class="popup-footer">
-      <span>100% Local Privacy Guaranteed</span>
+      <span>🔒 100% Local-First & Privacy-Preserving</span>
     </footer>
   </div>
+
   <script src="popup.js"></script>
 </body>
 </html>

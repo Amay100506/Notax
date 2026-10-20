@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "NotifyIQ — Smart Shopping & Price Tracker",
-  "version": "1.0.0",
-  "description": "BuyHatke-style intelligent price history tracker, deal scorer, and coupon auto-finder connected directly to your local NotifyIQ AI engine.",
+  "name": "NotifyIQ — AI Assistant & Smart Price Tracker",
+  "version": "1.1.0",
+  "description": "Executive daily briefings, 1-click calendar sync, and BuyHatke-style intelligent price history tracker with coupons auto-finder.",
   "icons": {
     "16": "icons/icon-16.png",
     "48": "icons/icon-48.png",
