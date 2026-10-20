@@ -3,8 +3,9 @@
 
 [![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Tests Passing](https://img.shields.io/badge/tests-60%2B%20passed-brightgreen.svg)]()
+[![Tests Passing](https://img.shields.io/badge/tests-75%2B%20passed-brightgreen.svg)]()
 [![Platform: Android + Localhost](https://img.shields.io/badge/platform-Android%20%7C%20Localhost-orange.svg)]()
+[![Extension: Manifest V3](https://img.shields.io/badge/extension-Manifest%20V3-purple.svg)]()
 
 ---
 
@@ -25,7 +26,7 @@ Existing notification managers often suffer from major drawbacks:
 1. **What type of notification is this?** (6-class categorization)
 2. **How important is it?** (Deterministic, transparent priority scoring)
 3. **Does it require an action?** (Grammar-aware action extraction)
-4. **Does it contain a deadline?** (Timezone-aware relative/absolute deadline parsing)
+4. **Does it contain a deadline?** (Timezone-aware relative/absolute deadline parsing enhanced with open-source `dateparser` NLP)
 5. **Why did the AI assign this priority?** (Human-auditable explanation factor list)
 
 NotifyIQ is a **decision-support tool**: it never automatically replies, dismisses notifications, or executes financial actions on the user's behalf.
@@ -34,17 +35,19 @@ NotifyIQ is a **decision-support tool**: it never automatically replies, dismiss
 
 ## 3. Key Features
 
+- 🧩 **BuyHatke-Style Chrome/Edge Extension (Manifest V3)**: Real-time on-page floating price comparison pill on Amazon, Flipkart, Myntra, and Ajio. Provides in-page price history SVG graphs, AI deal quality scores (0–100), automated coupon harvesting with 1-click **Copy & Apply**, and target price drop alerts synced to your local NotifyIQ database.
 - 📱 **Real-Time Mobile Companion (Installable PWA)**: Installable directly onto Android & iOS devices without an app store. Features real-time WebSocket live-streaming, haptic vibration, push notifications, and a mobile-optimized card interface.
 - 🔒 **100% Local & Privacy-First**: Offline execution using SQLite, scikit-learn, and rule-based extractors. Zero third-party cloud AI APIs; zero external subscriptions.
 - 🤖 **Native Android Companion**: Kotlin-based `NotificationListenerService` that respects explicit user permissions, supports app allowlists, instant pause toggle, and records dismissal events.
 - ⚙️ **Notification Service & Lifecycle Orchestration**: End-to-end management service with Smart Inbox multi-criteria filtering, attention summaries (overdue deadlines, unread high-priority, open actions), read/unread status tracking, and per-app analytics.
 - 🌙 **Quiet Hours & Notification Deferral**: Timezone-aware quiet hours scheduling (e.g., 22:00 to 07:00) that captures notifications without dropping context, marking them as deferred to suppress alerts during downtime.
 - 🛡️ **Hard Package Exclusions**: Pre-capture (Android) and pre-ingestion (backend) package exclusion lists allowing complete blacklisting of sensitive applications (banking, private messengers) from intelligence pipelines and database storage.
-- 🛍️ **Shopping Intelligence (BuyHatke-Style)**: Offline deal discovery, multi-currency price and discount extraction, deal quality scoring ($0-100$), coupon code detection, and historical price drop tracking without remote cloud tracking.
+- 🛍️ **Shopping Intelligence Engine**: Offline deal discovery, multi-currency price and discount extraction, deal quality scoring ($0-100$), coupon code detection, and historical price drop tracking without remote cloud tracking.
+- 🧠 **Open-Source NLP Engine (`dateparser`)**: Enhanced natural language deadline extraction resolving expressions like "due on 28 October", "registration closes in 3 days", and timezone-aware offsets.
 - 🤖 **Hybrid AI Architecture**: Combines TF-IDF + Logistic Regression classification with deterministic rule fallback and grammar-based information extraction.
 - ⚖️ **Explainable Priority Formula**: Auditable scoring based on Urgency, Action Requirement, Deadline Proximity, User Importance, and Recency Decay.
 - 🔁 **Two-Level Duplicate Grouping**: Deterministic exact SHA-256 fingerprinting plus conservative near-duplicate similarity without ever discarding source notifications.
-- 📊 **Interactive Streamlit Dashboard**: 7 comprehensive pages (Overview, Smart Inbox, Notification Details, Action Center, Duplicate Center, Analytics & Evaluation, Settings & Privacy) with rich Plotly charts.
+- 📊 **Interactive Streamlit Dashboard**: 9 comprehensive pages (Overview, Smart Inbox, Notification Details, Action Center, Duplicate Center, Shopping Intelligence, Analytics & Evaluation, Settings & Privacy, Mobile Companion) with rich Plotly charts.
 - ✍️ **Human-in-the-Loop Feedback**: Active feedback recording stored locally in SQLite to refine future models.
 
 ---
@@ -175,9 +178,30 @@ NotifyIQ/
 │   │   ├── __init__.py
 │   │   ├── configuration.py           # Configuration management
 │   │   └── logging_config.py          # Privacy-preserving logging
-│   └── tests/                         # Full automated test suite (60+ tests)
+│   └── tests/                         # Full automated test suite (75+ tests)
+│       ├── test_action_extractor.py
+│       ├── test_api.py
+│       ├── test_classifier.py
 │       ├── test_database.py
+│       ├── test_deadlines.py
+│       ├── test_duplicates.py
 │       ├── test_import.py
+│       ├── test_notification_service.py
+│       ├── test_pipeline.py
+│       ├── test_preprocessing.py
+│       ├── test_priority.py
+│       └── test_shopping.py
+│
+├── extension/                         # BuyHatke-Style Chrome/Edge Browser Extension (Manifest V3)
+│   ├── manifest.json                  # Manifest V3 specification
+│   ├── background.js                  # Background service worker (FastAPI sync)
+│   ├── content.js                     # In-page floating widget & price graph injector
+│   ├── content.css                    # In-page styling & responsive modal
+│   ├── popup.html                     # Toolbar popup UI
+│   ├── popup.js                       # Popup controller & coupon copy handler
+│   ├── popup.css                      # Popup UI styling
+│   ├── icons/                         # Extension icons (16, 48, 128)
+│   └── README.md                      # Extension installation guide
 │       ├── test_preprocessing.py
 │       ├── test_classifier.py
 │       ├── test_deadlines.py

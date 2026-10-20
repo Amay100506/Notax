@@ -253,4 +253,39 @@ def extract_deadline(
             is_overdue=False,
         )
 
+    # 8. Open-Source Dateparser NLP Integration (for natural language deadlines)
+    try:
+        import dateparser
+        cue_match = re.search(
+            r"\b(?:due|before|expires|until|valid till|valid until|closes on|deadline is)\s+([A-Za-z0-9\s,:\-]+?)(?:\.|\n|$|!|\?)",
+            combined,
+            re.IGNORECASE,
+        )
+        if cue_match:
+            candidate_phrase = cue_match.group(1).strip()
+            # Avoid single generic words
+            if len(candidate_phrase.split()) >= 1 and not re.match(r"^(?:soon|shortly|now)$", candidate_phrase, re.IGNORECASE):
+                parsed_dt = dateparser.parse(
+                    candidate_phrase,
+                    settings={
+                        "RELATIVE_BASE": ref_dt.replace(tzinfo=None),
+                        "PREFER_DATES_FROM": "future",
+                        "RETURN_AS_TIMEZONE_AWARE": False,
+                    },
+                )
+                if parsed_dt:
+                    tz = ZoneInfo(settings.timezone)
+                    resolved_dt = parsed_dt.replace(tzinfo=tz)
+                    rem_secs = int((resolved_dt - ref_dt).total_seconds())
+                    return DeadlineExtractionResult(
+                        deadline_detected=True,
+                        deadline_text=cue_match.group(0).strip(),
+                        deadline_at=resolved_dt.isoformat(),
+                        resolution_status="resolved",
+                        time_remaining_seconds=rem_secs,
+                        is_overdue=rem_secs < 0,
+                    )
+    except Exception:
+        pass
+
     return DeadlineExtractionResult(deadline_detected=False, resolution_status="none")

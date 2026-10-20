@@ -1,0 +1,50 @@
+{
+  "manifest_version": 3,
+  "name": "NotifyIQ — Smart Shopping & Price Tracker",
+  "version": "1.0.0",
+  "description": "BuyHatke-style intelligent price history tracker, deal scorer, and coupon auto-finder connected directly to your local NotifyIQ AI engine.",
+  "icons": {
+    "16": "icons/icon-16.png",
+    "48": "icons/icon-48.png",
+    "128": "icons/icon-128.png"
+  },
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "icons/icon-16.png",
+      "48": "icons/icon-48.png",
+      "128": "icons/icon-128.png"
+    },
+    "default_title": "NotifyIQ Price Intelligence"
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "*://*.amazon.in/*",
+        "*://*.amazon.com/*",
+        "*://*.flipkart.com/*",
+        "*://*.myntra.com/*",
+        "*://*.ajio.com/*"
+      ],
+      "js": ["content.js"],
+      "css": ["content.css"],
+      "run_at": "document_idle"
+    }
+  ],
+  "permissions": [
+    "storage",
+    "activeTab"
+  ],
+  "host_permissions": [
+    "*://*.amazon.in/*",
+    "*://*.amazon.com/*",
+    "*://*.flipkart.com/*",
+    "*://*.myntra.com/*",
+    "*://*.ajio.com/*",
+    "http://127.0.0.1:8000/*",
+    "http://localhost:8000/*"
+  ]
+}

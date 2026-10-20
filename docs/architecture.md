@@ -83,3 +83,16 @@ flowchart TD
 ### 2.8 Local Database (`backend/database/`)
 - Offline SQLite database with foreign keys, indexes, and schema version migrations.
 - Complete cascade deletion on purge.
+
+### 2.9 BuyHatke-Style Browser Extension (`extension/`)
+- **Technology**: Manifest V3, modern Vanilla JavaScript, CSS, background service worker.
+- **Supported E-Commerce**: Amazon India, Amazon US, Flipkart, Myntra, Ajio.
+- **In-Page Overlay (`content.js`)**: Automatically extracts product title, SKU, and numeric price from page DOM, injecting a non-intrusive floating pill and modal.
+- **Price History Graph**: Generates local SVG trend visualizations comparing current price against historical lows.
+- **Coupon Auto-Finder**: Surfaces verified coupon codes with 1-click clipboard copy.
+- **Backend Sync**: Integrates with local FastAPI gateway (`/shopping/extension/track`) to store price observations in SQLite.
+
+### 2.10 Open-Source NLP Engine (`dateparser`)
+- Extends the deterministic regex rules with Scrapinghub's open-source `dateparser` library.
+- Supports conversational deadlines (e.g. "due on 28 October", "closes in 3 days", "valid till tomorrow 5pm").
+- Employs timezone-aware relative base resolution to guarantee correct timeline positioning.

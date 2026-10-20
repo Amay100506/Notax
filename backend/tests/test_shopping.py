@@ -295,3 +295,31 @@ def test_api_shopping_coupons_endpoint(client):
     response = client.get("/shopping/coupons")
     assert response.status_code == 200
     assert isinstance(response.json(), list)
+
+
+def test_api_extension_track_endpoint(client):
+    payload = {
+        "product_title": "Apple iPhone 16 Pro 128GB",
+        "current_price": 114900.0,
+        "original_price": 119900.0,
+        "currency": "INR",
+        "store": "Amazon",
+        "url": "https://www.amazon.in/dp/B0CHX1W1XY",
+    }
+    response = client.post("/shopping/extension/track", json=payload)
+    assert response.status_code == 201
+    data = response.json()
+    assert data["status"] == "tracked"
+    assert data["product_title"] == "Apple iPhone 16 Pro 128GB"
+    assert data["current_price"] == 114900.0
+    assert "verdict" in data
+    assert "deal_score" in data
+    assert "lowest_price" in data
+    assert isinstance(data["price_history"], list)
+    assert isinstance(data["coupons"], list)
+
+
+def test_api_extension_coupons_endpoint(client):
+    response = client.get("/shopping/extension/coupons/Amazon")
+    assert response.status_code == 200
+    assert isinstance(response.json(), list)

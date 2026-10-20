@@ -43,3 +43,13 @@ def test_no_deadline():
     assert res.deadline_detected is False
     assert res.resolution_status == "none"
     assert res.deadline_at is None
+
+
+def test_dateparser_natural_language_deadline():
+    ref_time = "2026-10-20T10:00:00+05:30"
+    text = "Important: registration closes on 25 October 2026. Please complete your submission."
+    res = extract_deadline(text, reference_time_str=ref_time)
+    assert res.deadline_detected is True
+    assert res.resolution_status == "resolved"
+    assert res.deadline_at is not None
+    assert "2026-10-25" in res.deadline_at

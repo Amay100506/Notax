@@ -543,8 +543,8 @@ def main():
         shopping_svc.ensure_shopping_tables()
 
         # Load shopping data if no shopping notifications exist
-        shop_tab1, shop_tab2, shop_tab3, shop_tab4 = st.tabs([
-            "🏷️ Best Deals", "🎟️ Coupon Codes", "📈 Price Tracker", "📊 Shopping Analytics"
+        shop_tab1, shop_tab2, shop_tab3, shop_tab4, shop_tab5 = st.tabs([
+            "🏷️ Best Deals", "🎟️ Coupon Codes", "📈 Price Tracker", "📊 Shopping Analytics", "🧩 Browser Extension (BuyHatke-Style)"
         ])
 
         with shop_tab1:
@@ -689,6 +689,61 @@ def main():
                     st.dataframe(store_df, use_container_width=True)
             except Exception as e:
                 st.info(f"Shopping analytics will populate as deals are detected.")
+
+        with shop_tab5:
+            st.subheader("🧩 BuyHatke-Style Browser Extension")
+            st.markdown(
+                """
+                NotifyIQ includes a complete **Manifest V3 browser extension** for Chrome, Edge, and Brave.
+                It runs seamlessly on **Amazon**, **Flipkart**, **Myntra**, and **Ajio** to show:
+                - Floating badge with live AI deal quality score (0–100)
+                - In-page price history trend chart
+                - Available coupons with 1-click **Copy & Apply**
+                - 1-click target price drop alert subscription synced directly with this dashboard!
+                """
+            )
+
+            ext_col1, ext_col2 = st.columns([1.2, 1])
+            with ext_col1:
+                st.markdown("### 📥 3-Step Setup in Chrome or Edge")
+                st.markdown(
+                    f"""
+                    1. Open **`chrome://extensions`** (or **`edge://extensions`**).
+                    2. Enable **"Developer mode"** in the top-right corner.
+                    3. Click **"Load unpacked"** and select:
+                       ```
+                       {str(BASE_DIR / 'extension')}
+                       ```
+                    4. Navigate to any product on [Amazon.in](https://www.amazon.in) or [Flipkart.com](https://www.flipkart.com) — the NotifyIQ pill will appear automatically!
+                    """
+                )
+
+            with ext_col2:
+                st.markdown("### 🧪 Test Extension API Gateway")
+                st.caption("Verifies that the extension can connect to the local FastAPI shopping engine.")
+                if st.button("⚡ Test Extension Connection", key="test_ext_btn"):
+                    import requests
+                    try:
+                        res = requests.post(
+                            "http://127.0.0.1:8000/shopping/extension/track",
+                            json={
+                                "product_title": "Sony WH-1000XM5 Wireless Headphones",
+                                "current_price": 22990.0,
+                                "original_price": 29990.0,
+                                "currency": "INR",
+                                "store": "Amazon",
+                                "url": "https://www.amazon.in/dp/B09XS7JWHH",
+                            },
+                            timeout=3,
+                        )
+                        if res.status_code == 201:
+                            data = res.json()
+                            st.success(f"✅ Extension API Online! Scored: {data['deal_score']:.0f}/100 ({data['quality_label']})")
+                            st.info(f"Verdict: {data['verdict']}")
+                        else:
+                            st.error(f"Error: {res.status_code} - {res.text}")
+                    except Exception as ex:
+                        st.error(f"Connection failed: {ex}")
 
     # -------------------------------------------------------------
     # PAGE 7: ANALYTICS & MODEL EVALUATION

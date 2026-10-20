@@ -46,6 +46,17 @@ class TrackPriceRequest(BaseModel):
     notification_id: Optional[str] = None
 
 
+class ExtensionTrackRequest(BaseModel):
+    """Payload received from the BuyHatke browser extension."""
+    product_title: str
+    current_price: float
+    original_price: Optional[float] = None
+    currency: str = "INR"
+    store: str = "Amazon"
+    url: Optional[str] = None
+    sku: Optional[str] = None
+
+
 # ============================================================================
 # Endpoints
 # ============================================================================
@@ -148,3 +159,111 @@ def record_price(req: TrackPriceRequest):
     except Exception as e:
         logger.error("Failed to record price observation: %s", str(e), exc_info=True)
         raise HTTPException(status_code=500, detail="Failed to record price observation")
+
+
+# ============================================================================
+# BuyHatke Extension Support Endpoints
+# ============================================================================
+
+@router.post("/extension/track", status_code=status.HTTP_201_CREATED)
+def extension_track_product(req: ExtensionTrackRequest):
+    """
+    Receives live product metadata from the BuyHatke browser extension,
+    records historical price point, and returns comparison insights & coupons.
+    """
+    try:
+        store_pkg = f"com.{req.store.lower().replace(' ', '')}.android"
+        
+        # 1. Record current price observation
+        price_record = shopping_service.track_price(
+            package_name=store_pkg,
+            product_title=req.product_title,
+            price=req.current_price,
+            currency=req.currency,
+        )
+
+        # 2. Check for price drop
+        price_drop = shopping_service.detect_price_drop(req.product_title, req.current_price)
+
+        # 3. Retrieve price history
+        history = shopping_service.get_price_history(req.product_title, limit=30)
+        prices = [float(h["price"]) for h in history] if history else [req.current_price]
+        lowest = min(prices)
+        highest = max(prices)
+        avg_price = sum(prices) / len(prices)
+
+        # 4. Score the current deal
+        price_info = {
+            "has_price": True,
+            "original_price": req.original_price or highest,
+            "discounted_price": req.current_price,
+            "current_price": req.current_price,
+            "discount_percent": round(((highest - req.current_price) / highest) * 100, 1) if highest > req.current_price else 0.0,
+            "currency": req.currency,
+        }
+        deal_scored = shopping_service.deal_scorer.score_deal(
+            text=f"{req.product_title} at {req.current_price}",
+            title=req.product_title,
+            package_name=store_pkg,
+            price_info=price_info,
+        )
+
+        # 5. Fetch available coupons for this store
+        all_coupons = shopping_service.get_all_coupons()
+        matching_coupons = [
+            c for c in all_coupons
+            if req.store.lower() in str(c.get("source_app", "")).lower()
+               or req.store.lower() in str(c.get("product_title", "")).lower()
+        ]
+        # If no store-specific coupon, offer global coupons
+        if not matching_coupons:
+            matching_coupons = all_coupons[:3]
+
+        # Determine verdict
+        if req.current_price <= lowest and len(prices) > 1:
+            verdict = "🔥 Lowest Recorded Price! Best time to buy."
+        elif price_drop:
+            verdict = f"📉 Price dropped by {price_drop.drop_percent:.0f}%! Good deal."
+        elif req.current_price < avg_price:
+            verdict = "✨ Price is below historical average."
+        elif req.current_price > avg_price and len(prices) > 1:
+            verdict = "⚠️ Price is currently higher than average. You may want to wait."
+        else:
+            verdict = "📦 Price is steady."
+
+        return {
+            "status": "tracked",
+            "product_title": req.product_title,
+            "store": req.store,
+            "current_price": req.current_price,
+            "currency": req.currency,
+            "lowest_price": lowest,
+            "highest_price": highest,
+            "average_price": round(avg_price, 2),
+            "deal_score": deal_scored.get("deal_score", 50.0),
+            "quality_label": deal_scored.get("quality_label", "good_deal"),
+            "is_time_sensitive": deal_scored.get("is_time_sensitive", False),
+            "verdict": verdict,
+            "price_drop": price_drop.model_dump() if price_drop else None,
+            "price_history": history,
+            "coupons": matching_coupons,
+        }
+    except Exception as e:
+        logger.error("Failed to process extension track: %s", str(e), exc_info=True)
+        raise HTTPException(status_code=500, detail="Failed to process product tracking")
+
+
+@router.get("/extension/coupons/{store_name}")
+def extension_get_coupons(store_name: str):
+    """Returns available coupon codes for a specific shopping site."""
+    try:
+        all_coupons = shopping_service.get_all_coupons()
+        matched = [
+            c for c in all_coupons
+            if store_name.lower() in str(c.get("source_app", "")).lower()
+               or store_name.lower() in str(c.get("product_title", "")).lower()
+        ]
+        return matched if matched else all_coupons[:5]
+    except Exception as e:
+        logger.error("Failed to fetch extension coupons: %s", str(e), exc_info=True)
+        raise HTTPException(status_code=500, detail="Failed to fetch coupons")

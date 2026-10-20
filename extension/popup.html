@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>NotifyIQ Shopping Assistant</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div class="popup-container">
+    <header class="popup-header">
+      <div class="header-brand">
+        <span class="brand-icon">🔔</span>
+        <span class="brand-name">NotifyIQ</span>
+      </div>
+      <div id="backend-status" class="status-indicator status-offline">Connecting...</div>
+    </header>
+
+    <main class="popup-body">
+      <div class="hero-card">
+        <div class="hero-title">Shopping Intelligence</div>
+        <div class="hero-subtitle">Tracking Amazon, Flipkart & Myntra</div>
+        <div class="stats-row">
+          <div class="stat-item">
+            <span id="active-deals-count" class="stat-val">-</span>
+            <span class="stat-lbl">Active Deals</span>
+          </div>
+          <div class="stat-item">
+            <span id="coupons-count" class="stat-val">-</span>
+            <span class="stat-lbl">Coupons</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="section-title">🎟️ Active Store Coupons</div>
+      <div id="coupons-list" class="coupons-scroll">
+        <div class="loading-text">Loading coupons...</div>
+      </div>
+
+      <button id="open-dashboard-btn" class="btn-action">
+        📊 Open Full AI Dashboard
+      </button>
+    </main>
+
+    <footer class="popup-footer">
+      <span>100% Local Privacy Guaranteed</span>
+    </footer>
+  </div>
+  <script src="popup.js"></script>
+</body>
+</html>
