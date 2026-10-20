@@ -28,6 +28,7 @@ from backend.api.schemas import (
 )
 from backend.database.repository import Repository
 from backend.services.import_service import ImportReport, ImportService
+from backend.services.shopping_service import ShoppingService
 from backend.utils.configuration import settings
 from backend.utils.logging_config import logger
 
@@ -35,6 +36,7 @@ router = APIRouter()
 repo = Repository()
 pipeline = AIPipeline(repository=repo)
 import_service = ImportService(repository=repo)
+shopping_service = ShoppingService(repository=repo)
 
 
 def get_lan_ip() -> str:
@@ -137,6 +139,10 @@ async def import_notifications(batch: NotificationImportBatch):
     # Process and persist accepted items
     for event in report.accepted_records:
         res = pipeline.process_notification(event, persist=True)
+        try:
+            shopping_service.analyze_and_store(res)
+        except Exception:
+            pass
         await manager.broadcast({"type": "NEW_NOTIFICATION", "payload": res})
 
     return report
@@ -151,6 +157,11 @@ async def process_single_notification(req: ProcessNotificationRequest):
         if existing:
             return NotificationResponse(**existing)
     result = pipeline.process_notification(event_dict, persist=req.persist)
+    if req.persist:
+        try:
+            shopping_service.analyze_and_store(result)
+        except Exception:
+            pass
     # Broadcast to connected mobile devices in real time
     await manager.broadcast({"type": "NEW_NOTIFICATION", "payload": result})
     return NotificationResponse(**result)

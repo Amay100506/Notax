@@ -580,28 +580,39 @@ def main():
                     quality = deal.get("quality_label", "fair")
                     emoji = "🔥" if quality == "excellent" else ("⭐" if quality == "good" else "📦")
                     score = deal.get("deal_score", 0)
-                    st.markdown(
-                        f"""
-                        <div class="deal-card">
-                            <div style="display: flex; justify-content: space-between; align-items: center;">
-                                <strong style="font-size: 1.1rem;">{emoji} {deal.get('product_title') or 'Shopping Deal'}</strong>
-                                <span style="background: rgba(16,185,129,0.2); color: #10B981; padding: 4px 10px; border-radius: 20px; font-weight: 700;">
-                                    Score: {score:.0f}/100
-                                </span>
+                        coupon_display = ""
+                        raw_coupons = deal.get("coupon_codes", [])
+                        if isinstance(raw_coupons, list) and raw_coupons:
+                            coupon_display = ", ".join(str(c) for c in raw_coupons)
+                        elif isinstance(raw_coupons, str) and raw_coupons and raw_coupons != "[]":
+                            coupon_display = raw_coupons.strip("[]'\"")
+                        if coupon_display:
+                            coupon_html = f'<div style="margin-top: 6px;"><span class="coupon-code">🎟️ CODE: {coupon_display}</span></div>'
+                        else:
+                            coupon_html = ""
+
+                        st.markdown(
+                            f"""
+                            <div class="deal-card">
+                                <div style="display: flex; justify-content: space-between; align-items: center;">
+                                    <strong style="font-size: 1.1rem;">{emoji} {deal.get('product_title') or 'Shopping Deal'}</strong>
+                                    <span style="background: rgba(16,185,129,0.2); color: #10B981; padding: 4px 10px; border-radius: 20px; font-weight: 700;">
+                                        Score: {score:.0f}/100
+                                    </span>
+                                </div>
+                                <div style="margin-top: 8px; font-size: 0.9rem;">
+                                    {f'💰 ₹{deal.get("original_price", 0):,.0f} → ₹{deal.get("discounted_price", 0):,.0f}' if deal.get('discounted_price') else ''}
+                                    {f'<span style="color: #10B981; font-weight: 600;"> ({deal.get("discount_percent", 0):.0f}% OFF)</span>' if deal.get('discount_percent') else ''}
+                                </div>
+                                <div style="margin-top: 4px; font-size: 0.82rem; color: #94A3B8;">
+                                    🏪 {deal.get('source_app', 'Unknown')} | 🕒 {str(deal.get('detected_at', ''))[:19].replace('T', ' ')}
+                                    {' | ⚡ TIME-SENSITIVE' if deal.get('is_time_sensitive') else ''}
+                                </div>
+                                {coupon_html}
                             </div>
-                            <div style="margin-top: 8px; font-size: 0.9rem;">
-                                {f'💰 ₹{deal.get("original_price", 0):,.0f} → ₹{deal.get("discounted_price", 0):,.0f}' if deal.get('discounted_price') else ''}
-                                {f'<span style="color: #10B981; font-weight: 600;"> ({deal.get("discount_percent", 0):.0f}% OFF)</span>' if deal.get('discount_percent') else ''}
-                            </div>
-                            <div style="margin-top: 4px; font-size: 0.82rem; color: #94A3B8;">
-                                🏪 {deal.get('source_app', 'Unknown')} | 🕒 {str(deal.get('detected_at', ''))[:19].replace('T', ' ')}
-                                {' | ⚡ TIME-SENSITIVE' if deal.get('is_time_sensitive') else ''}
-                            </div>
-                            {f'<div style="margin-top: 6px;"><span class="coupon-code">{deal.get("coupon_codes", "")}</span></div>' if deal.get('coupon_codes') else ''}
-                        </div>
-                        """,
-                        unsafe_allow_html=True,
-                    )
+                            """,
+                            unsafe_allow_html=True,
+                        )
 
         with shop_tab2:
             st.subheader("🎟️ Detected Coupon Codes")
@@ -616,16 +627,15 @@ def main():
                 st.info("No coupon codes detected yet.")
             else:
                 for c in coupons:
-                    codes = c.get("coupon_codes", "")
-                    if codes:
-                        for code in codes.split(","):
-                            code = code.strip()
-                            if code:
-                                st.markdown(
-                                    f'<span class="coupon-code">{code}</span>',
-                                    unsafe_allow_html=True,
-                                )
-                        st.caption(f"From: {c.get('source_app', 'Unknown')} | {c.get('product_title', '')}")
+                    code = c.get("coupon_code") or c.get("coupon_codes", "")
+                    if code:
+                        st.markdown(
+                            f'<span class="coupon-code">🏷️ {code}</span>',
+                            unsafe_allow_html=True,
+                        )
+                        disc = c.get("discount_percent")
+                        disc_str = f" | {disc:.0f}% OFF" if disc else ""
+                        st.caption(f"From: {c.get('source_app', 'Unknown')} | {c.get('product_title', '')}{disc_str}")
                         st.divider()
 
         with shop_tab3:
@@ -660,25 +670,25 @@ def main():
         with shop_tab4:
             st.subheader("📊 Shopping Analytics")
             try:
-                shop_summary = shopping_svc.get_shopping_summary()
+                summary_obj = shopping_svc.get_shopping_summary()
+                time_sens_count = shopping_svc.get_time_sensitive_count()
                 sm1, sm2, sm3, sm4 = st.columns(4)
                 with sm1:
-                    render_metric_card("Total Deals", shop_summary.get("total_deals", 0), "Deals detected")
+                    render_metric_card("Active Deals", summary_obj.active_deals_count, "Deals detected")
                 with sm2:
-                    render_metric_card("Coupons Found", shop_summary.get("coupons_found", 0), "Promo codes", "#F59E0B")
+                    render_metric_card("Coupons Found", summary_obj.coupons_found, "Promo codes", "#F59E0B")
                 with sm3:
-                    render_metric_card("Avg Discount", f"{shop_summary.get('avg_discount_percent', 0):.0f}%", "Average savings", "#10B981")
+                    render_metric_card("Avg Discount", f"{summary_obj.avg_discount_percent:.0f}%", "Average savings", "#10B981")
                 with sm4:
-                    render_metric_card("Time-Sensitive", shop_summary.get("time_sensitive_count", 0), "Expiring soon", "#EF4444")
+                    render_metric_card("Time-Sensitive", time_sens_count, "Expiring soon", "#EF4444")
 
                 # Top stores
-                top_stores = shop_summary.get("top_stores", [])
-                if top_stores:
+                if summary_obj.top_stores:
                     st.subheader("Top Shopping Apps")
-                    store_df = pd.DataFrame(top_stores)
+                    store_df = pd.DataFrame([s.model_dump() for s in summary_obj.top_stores])
                     st.dataframe(store_df, use_container_width=True)
-            except Exception:
-                st.info("Shopping analytics will populate as deals are detected.")
+            except Exception as e:
+                st.info(f"Shopping analytics will populate as deals are detected.")
 
     # -------------------------------------------------------------
     # PAGE 7: ANALYTICS & MODEL EVALUATION

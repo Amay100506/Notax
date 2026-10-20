@@ -56,8 +56,19 @@ def main():
     if report.accepted_records:
         print(f"\nProcessing {report.accepted_count} accepted notifications through AI Pipeline...")
         pipeline = AIPipeline(repository=repo)
+        try:
+            from backend.services.shopping_service import ShoppingService
+            shopping_service = ShoppingService(repository=repo)
+        except Exception:
+            shopping_service = None
+
         for idx, event in enumerate(report.accepted_records, 1):
-            pipeline.process_notification(event, persist=True)
+            res = pipeline.process_notification(event, persist=True)
+            if shopping_service:
+                try:
+                    shopping_service.analyze_and_store(res)
+                except Exception:
+                    pass
 
         print(f"Successfully processed and stored {report.accepted_count} notifications.")
 
