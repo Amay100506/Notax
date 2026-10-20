@@ -45,6 +45,14 @@
     "*://*.myntra.com/*",
     "*://*.ajio.com/*",
     "http://127.0.0.1:8000/*",
-    "http://localhost:8000/*"
-  ]
+    "http://localhost:8000/*",
+    "http://192.168.*:*/*",
+    "http://*/*"
+  ],
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "notifyiq-extension@notifyiq.org",
+      "strict_min_version": "109.0"
+    }
+  }
 }
