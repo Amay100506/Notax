@@ -19,6 +19,11 @@ from backend.database.connection import init_db
 from backend.database.repository import Repository
 from backend.services.import_service import ImportService
 from backend.services.notification_service import NotificationService, InboxFilters
+from backend.utils.calendar_sync import (
+    generate_ics_content,
+    generate_google_calendar_url,
+    generate_outlook_calendar_url,
+)
 from backend.utils.configuration import settings
 from dashboard.charts import (
     build_category_distribution_chart,
@@ -193,6 +198,37 @@ def main():
                 st.rerun()
 
         summary = repo.get_analytics_summary()
+
+        # AI Executive Daily Briefing Card
+        from backend.services.digest_service import DigestService
+        digest_svc = DigestService(repository=repo)
+        digest = digest_svc.generate_daily_digest()
+
+        overload_color = (
+            "#EF4444"
+            if digest.cognitive_overload_level == "high"
+            else ("#F59E0B" if digest.cognitive_overload_level == "moderate" else "#10B981")
+        )
+        st.markdown(
+            f"""
+            <div style="background: linear-gradient(135deg, rgba(99, 102, 241, 0.08) 0%, rgba(16, 185, 129, 0.05) 100%);
+                        border: 1px solid rgba(99, 102, 241, 0.25); border-radius: 12px; padding: 16px 20px; margin-bottom: 20px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                    <div style="font-size: 1.1rem; font-weight: 700; color: #FFFFFF;">
+                        🌅 AI Executive Briefing — {digest.headline}
+                    </div>
+                    <div style="background: rgba(255, 255, 255, 0.08); border-radius: 20px; padding: 4px 12px; font-size: 0.8rem; font-weight: 600; color: {overload_color}; border: 1px solid {overload_color};">
+                        Overload: {digest.cognitive_overload_level.upper()} ({digest.cognitive_overload_score}/100)
+                    </div>
+                </div>
+                <div style="font-size: 0.95rem; color: #E2E8F0; line-height: 1.5;">
+                    {digest.narrative}
+                </div>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+
         if summary["total_notifications"] == 0:
             st.info("👋 Welcome to NotifyIQ! Your notification database is currently empty.")
             st.markdown(
@@ -380,6 +416,33 @@ def main():
                             st.info(f"⚡ **Action:** {item.get('action_text')} ({item.get('action_type')})")
                         if item.get("deadline_status") == "resolved":
                             st.warning(f"⏰ **Deadline:** {item.get('deadline_text')} → `{item.get('deadline_at')}`")
+                            if item.get("deadline_at"):
+                                try:
+                                    dt_val = datetime.fromisoformat(item["deadline_at"].replace("Z", "+00:00"))
+                                    gcal_url = generate_google_calendar_url(
+                                        title=item.get("action_text") or item.get("title") or "Deadline",
+                                        description=f"Action: {item.get('action_text')}\nApp: {item.get('package_name')}\n{item.get('text')}",
+                                        deadline_at=dt_val,
+                                    )
+                                    ics_data = generate_ics_content(
+                                        title=item.get("action_text") or item.get("title") or "Deadline",
+                                        description=f"Action: {item.get('action_text')}\nApp: {item.get('package_name')}\n{item.get('text')}",
+                                        deadline_at=dt_val,
+                                        event_uid=f"notifyiq-{item['id']}",
+                                    )
+                                    c_gcal, c_ics = st.columns(2)
+                                    with c_gcal:
+                                        st.link_button("📅 Google Calendar", gcal_url)
+                                    with c_ics:
+                                        st.download_button(
+                                            "📥 .ics Event",
+                                            data=ics_data,
+                                            file_name=f"event_{item['id'][:8]}.ics",
+                                            mime="text/calendar",
+                                            key=f"inbox_ics_{item['id']}",
+                                        )
+                                except Exception:
+                                    pass
 
                         st.markdown("**Explanation Reasons:**")
                         for r in item.get("priority_reasons", []):
@@ -551,6 +614,30 @@ def main():
 
         st.caption(f"Showing **{len(actions)}** actions")
 
+        # Export Actions to Obsidian / Markdown / Notion
+        if actions:
+            md_lines = [
+                f"# 📋 NotifyIQ Action Plan — {datetime.now(timezone.utc).strftime('%Y-%m-%d')}",
+                "",
+                "Tracked actionable tasks extracted automatically from your notification stream:",
+                "",
+            ]
+            for a in actions:
+                status_box = "[x]" if a["status"] == "completed" else "[ ]"
+                dl_txt = f" (⏰ Due: `{a['deadline_at'][:19].replace('T', ' ')}`)" if a.get("deadline_at") else ""
+                md_lines.append(f"- {status_box} **{a['action_text']}** — *{a['package_name']}*{dl_txt}")
+            md_content = "\n".join(md_lines)
+
+            col_down1, col_down2 = st.columns([1.5, 3])
+            with col_down1:
+                st.download_button(
+                    "📥 Export Actions to Obsidian / Notion (.md)",
+                    data=md_content,
+                    file_name="NotifyIQ_Action_List.md",
+                    mime="text/markdown",
+                    key="export_actions_md",
+                )
+
         if not actions:
             st.info("No action items match the selected status.")
         else:
@@ -562,6 +649,32 @@ def main():
                         st.caption(f"App: <code>{act['package_name']}</code> | Type: `{act['action_type']}` | Ref: *{act.get('notification_title') or 'Notification'}*", unsafe_allow_html=True)
                         if act.get("deadline_at"):
                             st.warning(f"⏰ Deadline: `{act['deadline_at'][:19].replace('T', ' ')}`")
+                            try:
+                                dt_val = datetime.fromisoformat(act["deadline_at"].replace("Z", "+00:00"))
+                                gcal_url = generate_google_calendar_url(
+                                    title=act.get("action_text") or "Task Reminder",
+                                    description=f"Action: {act.get('action_text')}\nSource: {act.get('package_name')}",
+                                    deadline_at=dt_val,
+                                )
+                                ics_data = generate_ics_content(
+                                    title=act.get("action_text") or "Task Reminder",
+                                    description=f"Action: {act.get('action_text')}\nSource: {act.get('package_name')}",
+                                    deadline_at=dt_val,
+                                    event_uid=f"notifyiq-{act['id']}",
+                                )
+                                col_cal1, col_cal2 = st.columns(2)
+                                with col_cal1:
+                                    st.link_button("📅 Add to Google Calendar", gcal_url)
+                                with col_cal2:
+                                    st.download_button(
+                                        "📥 Download .ics",
+                                        data=ics_data,
+                                        file_name=f"event_{act['id'][:8]}.ics",
+                                        mime="text/calendar",
+                                        key=f"ics_btn_{act['id']}",
+                                    )
+                            except Exception:
+                                pass
 
                     with col_act2:
                         st.markdown(f"Status: **`{act['status'].upper()}`**")
@@ -986,6 +1099,60 @@ def main():
                 new_excluded = [p.strip() for p in excluded_text.split("\n") if p.strip()]
                 notif_service.manage_package_exclusions(new_excluded)
                 st.success(f"Updated exclusion list: {len(new_excluded)} packages.")
+
+        st.divider()
+
+        # External Webhook Alerts Card
+        st.subheader("🔔 External Webhook Alerts (Telegram & Discord)")
+        st.markdown(
+            "Receive instant push alerts on Telegram or Discord when a **high-priority urgent alert** arrives "
+            "or when a **shopping price drop** is detected."
+        )
+
+        from backend.utils.webhook_notifier import WebhookNotifier
+        wb_notifier = WebhookNotifier(repository=repo)
+        wb_cfg = wb_notifier.get_config()
+
+        wb_c1, wb_c2 = st.columns(2)
+        with wb_c1:
+            with st.form("webhook_settings_form"):
+                st.write("**Webhook Channels Setup:**")
+                wb_enabled = st.checkbox("Enable External Webhooks", value=wb_cfg["webhooks_enabled"])
+                tg_token = st.text_input("Telegram Bot Token", value=wb_cfg["telegram_bot_token"], type="password", help="From @BotFather")
+                tg_chat = st.text_input("Telegram Chat ID", value=wb_cfg["telegram_chat_id"], help="Your personal or group chat ID")
+                dc_url = st.text_input("Discord Webhook URL", value=wb_cfg["discord_webhook_url"], type="password", help="From Discord Server Settings -> Integrations -> Webhooks")
+                save_wb = st.form_submit_button("💾 Save Webhook Settings")
+                if save_wb:
+                    wb_notifier.save_config(
+                        telegram_bot_token=tg_token,
+                        telegram_chat_id=tg_chat,
+                        discord_webhook_url=dc_url,
+                        webhooks_enabled=wb_enabled,
+                    )
+                    st.success("Webhook settings saved successfully!")
+                    st.rerun()
+
+        with wb_c2:
+            st.write("**Webhook Diagnostics & Test:**")
+            if wb_cfg["webhooks_enabled"]:
+                st.success("🟢 Webhook Dispatches: ENABLED")
+            else:
+                st.info("⚪ Webhook Dispatches: DISABLED")
+
+            st.caption(f"Telegram Configured: {'✅ Yes' if wb_cfg['telegram_bot_token'] and wb_cfg['telegram_chat_id'] else '❌ No'}")
+            st.caption(f"Discord Configured: {'✅ Yes' if wb_cfg['discord_webhook_url'] else '❌ No'}")
+
+            st.write("")
+            if st.button("🚀 Send Test Alert to Webhooks"):
+                test_sent = wb_notifier.notify_urgent_alert(
+                    title="NotifyIQ Test Notification",
+                    text="Your external webhook notification stream is working properly!",
+                    priority_score=94.0,
+                )
+                if test_sent:
+                    st.success("✅ Test alert successfully dispatched!")
+                else:
+                    st.warning("⚠️ Webhook dispatch was skipped or failed. Verify your token or webhook URL.")
 
         st.divider()
 

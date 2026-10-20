@@ -232,3 +232,19 @@ def test_imperative_prefix_certainty_boost():
     assert res_imperative.action_detected is True
     assert res_imperative.action_certainty >= res_bare.action_certainty
     assert res_imperative.action_certainty >= 0.85
+
+
+def test_hinglish_action_detection():
+    """Test detection of Hinglish directive verbs and imperative phrases."""
+    res1 = extract_action("Aapka electricity bill turant pay karein")
+    assert res1.action_detected is True
+    assert res1.action_type == "pay"
+
+    res2 = extract_action("Aaj hi recharge karein validity khatam ho rahi hai")
+    assert res2.action_detected is True
+    assert res2.action_type == "recharge"
+
+    res3 = extract_action("Kripya form bharein")
+    assert res3.action_detected is True
+    assert res3.action_type == "bharein"
+

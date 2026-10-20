@@ -55,10 +55,14 @@ def parse_reference_time(ref_time_str: Optional[str]) -> datetime:
 def extract_time_part(text: str) -> Optional[tuple[int, int]]:
     """Extracts hour and minute from strings like '5 PM', '6:30 PM', '11:59 PM', 'noon', 'midnight'."""
     text_lower = text.lower()
-    if "midnight" in text_lower:
+    if "midnight" in text_lower or "raat" in text_lower:
         return 23, 59
-    if "noon" in text_lower:
+    if "noon" in text_lower or "dopahar" in text_lower:
         return 12, 0
+    if "shaam" in text_lower or "sham" in text_lower:
+        return 18, 0
+    if "subah" in text_lower:
+        return 9, 0
 
     time_match = re.search(r"\b(\d{1,2})(?::(\d{2}))?\s*(am|pm)\b", text_lower)
     if time_match:
@@ -137,8 +141,11 @@ def extract_deadline(
             is_overdue=rem_secs < 0,
         )
 
-    # 3. Check "tomorrow"
-    tomorrow_match = re.search(r"\b(?:by|before|at|due|expires)?\s*tomorrow(?:\s+(?:at|by|noon|midnight)?\s*(\d{1,2}(?::\d{2})?\s*(?:am|pm)?))?\b", combined_lower)
+    # 3. Check "tomorrow" or "kal"
+    tomorrow_match = re.search(
+        r"\b(?:by|before|at|due|expires)?\s*(?:tomorrow|kal)(?:\s+(?:at|by|noon|midnight|sham|shaam|subah)?\s*(\d{1,2}(?::\d{2})?\s*(?:am|pm)?))?\b",
+        combined_lower,
+    )
     if tomorrow_match:
         phrase = tomorrow_match.group(0).strip()
         time_part = extract_time_part(combined_lower)
@@ -146,6 +153,27 @@ def extract_deadline(
 
         tomorrow_dt = ref_dt + timedelta(days=1)
         resolved_dt = tomorrow_dt.replace(hour=hour, minute=minute, second=0, microsecond=0)
+        rem_secs = int((resolved_dt - ref_dt).total_seconds())
+        return DeadlineExtractionResult(
+            deadline_detected=True,
+            deadline_text=phrase,
+            deadline_at=resolved_dt.isoformat(),
+            resolution_status="resolved",
+            time_remaining_seconds=rem_secs,
+            is_overdue=rem_secs < 0,
+        )
+
+    # 4. Check "today" or "aaj"
+    today_match = re.search(
+        r"\b(?:by|before|at|due|expires)?\s*(?:today|tonight|aaj)(?:\s+(?:at|by|noon|midnight|sham|shaam|subah)?\s*(\d{1,2}(?::\d{2})?\s*(?:am|pm)?))?\b",
+        combined_lower,
+    )
+    if today_match:
+        phrase = today_match.group(0).strip()
+        time_part = extract_time_part(combined_lower)
+        hour, minute = time_part if time_part else (20, 0)
+
+        resolved_dt = ref_dt.replace(hour=hour, minute=minute, second=0, microsecond=0)
         rem_secs = int((resolved_dt - ref_dt).total_seconds())
         return DeadlineExtractionResult(
             deadline_detected=True,

@@ -53,3 +53,19 @@ def test_dateparser_natural_language_deadline():
     assert res.resolution_status == "resolved"
     assert res.deadline_at is not None
     assert "2026-10-25" in res.deadline_at
+
+
+def test_hinglish_deadlines():
+    ref_time = "2026-10-20T10:00:00+05:30"
+    text1 = "Aapka bill kal shaam tak pay karein"
+    res1 = extract_deadline(text1, reference_time_str=ref_time)
+    assert res1.deadline_detected is True
+    assert res1.resolution_status == "resolved"
+    assert "2026-10-21" in res1.deadline_at
+    assert "18:00:00" in res1.deadline_at
+
+    text2 = "Aapka offer aaj raat tak valid hai"
+    res2 = extract_deadline(text2, reference_time_str=ref_time)
+    assert res2.deadline_detected is True
+    assert "2026-10-20" in res2.deadline_at
+

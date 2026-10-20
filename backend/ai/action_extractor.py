@@ -39,12 +39,16 @@ ACTION_VERBS = [
     "update",
     "fill",
     "download",
+    "recharge",
+    "bharo",
+    "bharein",
 ]
 
-# Patterns signaling explicit directives
+# Patterns signaling explicit directives (English & Hinglish)
 IMPERATIVE_PREFIXES = [
     r"please\s+",
     r"kindly\s+",
+    r"kripya\s+",
     r"action\s+needed:?\s*",
     r"action\s+required:?\s*",
     r"urgent:?\s*",
@@ -54,6 +58,10 @@ IMPERATIVE_PREFIXES = [
     r"requires\s+your\s+",
     r"don't\s+forget\s+to\s+",
     r"tap\s+to\s+",
+    r"turant\s+",
+    r"jaldi\s+",
+    r"aaj\s+hi\s+",
+    r"dhyaan\s+dein:?\s*",
 ]
 
 
@@ -76,8 +84,13 @@ def extract_action(text: str, title: str = "") -> ActionExtractionResult:
     # Test each action verb
     for verb in ACTION_VERBS:
         # Match verb followed by object / preposition (e.g., "submit your assignment", "review pull request")
-        pattern = rf"\b(?:please\s+|kindly\s+|to\s+)?({verb})\b\s+([a-zA-Z0-9_\-#\s]{{3,40}})"
+        pattern = rf"\b(?:please\s+|kindly\s+|kripya\s+|to\s+)?({verb})\b\s+([a-zA-Z0-9_\-#\s]{{3,40}})"
         match = re.search(pattern, combined)
+        # Also check object + verb order (SOV grammar common in Hinglish, e.g., "form bharein")
+        if not match:
+            sov_pattern = rf"\b([a-zA-Z0-9_\-#\s]{{2,30}})\s+({verb})\b"
+            match = re.search(sov_pattern, combined)
+
         if match:
             verb_matched = verb
             phrase = match.group(0).strip().capitalize()

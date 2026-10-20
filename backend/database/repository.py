@@ -269,6 +269,22 @@ class Repository:
             cursor.execute(query, params)
             return [dict(row) for row in cursor.fetchall()]
 
+    def get_action_by_id(self, action_id: str) -> Optional[dict[str, Any]]:
+        with get_db_connection(self.db_path) as conn:
+            cursor = conn.cursor()
+            cursor.execute(
+                """
+                SELECT a.*, n.title as notification_title, n.text as notification_text,
+                       n.package_name, n.priority_score, n.priority_level
+                FROM actions a
+                JOIN notifications n ON a.notification_id = n.id
+                WHERE a.id = ?
+                """,
+                (action_id,),
+            )
+            row = cursor.fetchone()
+            return dict(row) if row else None
+
     def update_action_status(self, action_id: str, status: str) -> bool:
         completed_at = datetime.now(timezone.utc).isoformat() if status == "completed" else None
         with get_db_connection(self.db_path) as conn:

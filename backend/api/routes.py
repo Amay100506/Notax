@@ -8,13 +8,19 @@ from datetime import datetime, timezone
 from pathlib import Path
 import secrets
 from typing import Optional
+from pydantic import BaseModel
 from fastapi import APIRouter, Depends, Header, HTTPException, Query, Request, Security, WebSocket, WebSocketDisconnect, status
-from fastapi.responses import StreamingResponse, FileResponse
+from fastapi.responses import StreamingResponse, FileResponse, Response
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 import io
 import socket
 import qrcode
 from backend.ai.pipeline import AIPipeline
+from backend.utils.calendar_sync import (
+    generate_ics_content,
+    generate_google_calendar_url,
+    generate_outlook_calendar_url,
+)
 from backend.api.schemas import (
     ActionItemResponse,
     ActionStatusUpdate,
@@ -37,6 +43,8 @@ from backend.api.schemas import (
 from backend.database.repository import Repository
 from backend.services.import_service import ImportReport, ImportService
 from backend.services.shopping_service import ShoppingService
+from backend.services.digest_service import DigestService, DailyDigest
+from backend.utils.webhook_notifier import WebhookNotifier
 from backend.utils.configuration import settings
 from backend.utils.logging_config import logger
 
@@ -45,6 +53,8 @@ repo = Repository()
 pipeline = AIPipeline(repository=repo)
 import_service = ImportService(repository=repo)
 shopping_service = ShoppingService(repository=repo)
+digest_service = DigestService(repository=repo)
+webhook_notifier = WebhookNotifier(repository=repo)
 
 
 def get_lan_ip() -> str:
@@ -453,6 +463,70 @@ def update_action_status(action_id: str, update: ActionStatusUpdate):
     return {"status": "updated", "action_id": action_id, "new_status": update.status}
 
 
+@router.get("/actions/{action_id}/calendar.ics")
+def export_action_ics(action_id: str):
+    """Exports an action with a deadline as a standard RFC 5545 iCalendar (.ics) file."""
+    action = repo.get_action_by_id(action_id)
+    if not action:
+        raise HTTPException(status_code=404, detail="Action item not found")
+
+    deadline_str = action.get("deadline_at")
+    if not deadline_str:
+        raise HTTPException(status_code=400, detail="Action item does not have a parseable deadline")
+
+    try:
+        dt = datetime.fromisoformat(deadline_str.replace("Z", "+00:00"))
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Invalid deadline timestamp: {e}")
+
+    title = action.get("action_text") or action.get("notification_title") or "Task Reminder"
+    desc = f"Action: {action.get('action_text', '')}\nSource App: {action.get('package_name', '')}\nDetails: {action.get('notification_text', '')}"
+    ics_text = generate_ics_content(
+        title=title,
+        description=desc,
+        deadline_at=dt,
+        event_uid=f"notifyiq-act-{action_id}",
+    )
+
+    filename = f"action_{action_id[:8]}.ics"
+    return Response(
+        content=ics_text,
+        media_type="text/calendar",
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+    )
+
+
+@router.get("/actions/{action_id}/calendar-links")
+def get_action_calendar_links(action_id: str):
+    """Returns direct one-click web calendar URLs for Google Calendar and Outlook."""
+    action = repo.get_action_by_id(action_id)
+    if not action:
+        raise HTTPException(status_code=404, detail="Action item not found")
+
+    deadline_str = action.get("deadline_at")
+    if not deadline_str:
+        raise HTTPException(status_code=400, detail="Action item does not have a parseable deadline")
+
+    try:
+        dt = datetime.fromisoformat(deadline_str.replace("Z", "+00:00"))
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Invalid deadline timestamp: {e}")
+
+    title = action.get("action_text") or action.get("notification_title") or "Task Reminder"
+    desc = f"Action: {action.get('action_text', '')}\nSource App: {action.get('package_name', '')}"
+    google_url = generate_google_calendar_url(title=title, description=desc, deadline_at=dt)
+    outlook_url = generate_outlook_calendar_url(title=title, description=desc, deadline_at=dt)
+
+    return {
+        "action_id": action_id,
+        "title": title,
+        "deadline_at": deadline_str,
+        "google_calendar_url": google_url,
+        "outlook_calendar_url": outlook_url,
+        "ics_download_url": f"/api/v1/actions/{action_id}/calendar.ics",
+    }
+
+
 @router.post("/feedback", response_model=FeedbackResponse)
 def submit_feedback(fb: FeedbackRequest):
     """Records user corrections for active learning and model tuning."""
@@ -480,6 +554,12 @@ def list_feedback(limit: int = 50):
 def get_analytics_summary():
     """Returns overall calculated aggregate statistics."""
     return repo.get_analytics_summary()
+
+
+@router.get("/analytics/digest", response_model=DailyDigest)
+def get_daily_digest():
+    """Generates an offline AI daily digest and executive briefing."""
+    return digest_service.generate_daily_digest()
 
 
 @router.get("/analytics/categories")
@@ -537,3 +617,51 @@ def purge_all_data():
         deleted_feedback=summary["deleted_feedback"],
         deleted_groups=summary["deleted_groups"],
     )
+
+
+class WebhookConfigRequest(BaseModel):
+    telegram_bot_token: Optional[str] = None
+    telegram_chat_id: Optional[str] = None
+    discord_webhook_url: Optional[str] = None
+    webhooks_enabled: Optional[bool] = None
+
+
+@router.get("/settings/webhooks")
+def get_webhook_settings():
+    """Returns current webhook configuration status (tokens masked for security)."""
+    cfg = webhook_notifier.get_config()
+    tok = cfg.get("telegram_bot_token", "")
+    masked_tok = f"{tok[:4]}...{tok[-4:]}" if len(tok) > 8 else ("configured" if tok else "")
+    disc = cfg.get("discord_webhook_url", "")
+    masked_disc = f"{disc[:12]}...{disc[-6:]}" if len(disc) > 18 else ("configured" if disc else "")
+    return {
+        "webhooks_enabled": cfg["webhooks_enabled"],
+        "has_telegram": bool(tok and cfg["telegram_chat_id"]),
+        "has_discord": bool(disc),
+        "telegram_token_preview": masked_tok,
+        "discord_url_preview": masked_disc,
+    }
+
+
+@router.post("/settings/webhooks")
+def update_webhook_settings(req: WebhookConfigRequest):
+    """Updates external webhook parameters in SQLite settings."""
+    webhook_notifier.save_config(
+        telegram_bot_token=req.telegram_bot_token,
+        telegram_chat_id=req.telegram_chat_id,
+        discord_webhook_url=req.discord_webhook_url,
+        webhooks_enabled=req.webhooks_enabled,
+    )
+    return {"status": "saved", "webhooks_enabled": req.webhooks_enabled}
+
+
+@router.post("/settings/webhooks/test")
+def test_webhook_alerts():
+    """Dispatches a test notification across configured webhooks."""
+    sent = webhook_notifier.notify_urgent_alert(
+        title="Test Alert from NotifyIQ",
+        text="Your webhook configuration is active and working properly!",
+        priority_score=92.5,
+    )
+    return {"status": "dispatched" if sent else "not_sent", "sent": sent}
+
