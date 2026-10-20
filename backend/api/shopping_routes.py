@@ -283,7 +283,7 @@ def extension_get_coupons(store_name: str):
 def create_price_alert(req: PriceAlertRequest):
     """Saves a user price drop alert target in SQLite settings."""
     try:
-        repo = shopping_service.repo
+        repo = shopping_service.repository
         alerts_json = repo.get_setting("user_price_alerts") or "[]"
         import json
         from datetime import datetime, timezone
@@ -303,4 +303,37 @@ def create_price_alert(req: PriceAlertRequest):
     except Exception as e:
         logger.error("Failed to create price alert: %s", str(e))
         raise HTTPException(status_code=500, detail="Failed to save price alert")
+
+
+@router.get("/extension/alerts")
+def list_price_alerts():
+    """Returns active user price drop alerts."""
+    try:
+        repo = shopping_service.repository
+        alerts_json = repo.get_setting("user_price_alerts") or "[]"
+        import json
+        return json.loads(alerts_json)
+    except Exception as e:
+        logger.error("Failed to list price alerts: %s", str(e))
+        return []
+
+
+@router.delete("/extension/alert/{index}")
+def delete_price_alert(index: int):
+    """Deletes a price alert by list index."""
+    try:
+        repo = shopping_service.repository
+        alerts_json = repo.get_setting("user_price_alerts") or "[]"
+        import json
+        alerts = json.loads(alerts_json)
+        if 0 <= index < len(alerts):
+            removed = alerts.pop(index)
+            repo.set_setting("user_price_alerts", json.dumps(alerts))
+            return {"status": "deleted", "item": removed}
+        raise HTTPException(status_code=404, detail="Alert index out of range")
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error("Failed to delete price alert: %s", str(e))
+        raise HTTPException(status_code=500, detail="Failed to delete alert")
 

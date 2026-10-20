@@ -323,3 +323,30 @@ def test_api_extension_coupons_endpoint(client):
     response = client.get("/shopping/extension/coupons/Amazon")
     assert response.status_code == 200
     assert isinstance(response.json(), list)
+
+
+def test_api_extension_alert_lifecycle(client):
+    # 1. Create alert
+    alert_payload = {
+        "product_title": "Sony WH-1000XM5",
+        "target_price": 22000.0,
+        "current_price": 24990.0,
+        "currency": "INR",
+        "store": "Amazon",
+        "url": "https://www.amazon.in/dp/B09XS7JWHH",
+    }
+    res = client.post("/shopping/extension/alert", json=alert_payload)
+    assert res.status_code == 200
+    assert res.json()["status"] == "alert_created"
+
+    # 2. List alerts
+    list_res = client.get("/shopping/extension/alerts")
+    assert list_res.status_code == 200
+    alerts = list_res.json()
+    assert len(alerts) >= 1
+    assert any(a["product_title"] == "Sony WH-1000XM5" for a in alerts)
+
+    # 3. Delete alert
+    del_res = client.delete("/shopping/extension/alert/0")
+    assert del_res.status_code == 200
+    assert del_res.json()["status"] == "deleted"

@@ -18,6 +18,8 @@ document.addEventListener("DOMContentLoaded", () => {
   const dealsCountEl = document.getElementById("active-deals-count");
   const couponsCountEl = document.getElementById("coupons-count");
   const couponsListEl = document.getElementById("coupons-list");
+  const priceAlertsListEl = document.getElementById("price-alerts-list");
+  const alertsCounterEl = document.getElementById("alerts-counter");
 
   const backendInput = document.getElementById("backend-url-input");
   const saveBackendBtn = document.getElementById("save-backend-url-btn");
@@ -96,6 +98,7 @@ document.addEventListener("DOMContentLoaded", () => {
         loadBriefing();
         loadActions();
         loadShopping();
+        loadPriceAlerts();
         loadWebhooks();
       })
       .catch(() => {
@@ -288,7 +291,82 @@ document.addEventListener("DOMContentLoaded", () => {
       });
   }
 
-  // 5. Load Webhooks Config
+  // 5. Load Active User Price Alerts
+  function loadPriceAlerts() {
+    fetch(`${BACKEND_URL}/shopping/extension/alerts`, { signal: AbortSignal.timeout(3000) })
+      .then(r => r.json())
+      .then(alerts => {
+        if (!alerts || alerts.length === 0) {
+          // Check local chrome.storage as fallback
+          if (typeof chrome !== "undefined" && chrome.storage && chrome.storage.local) {
+            chrome.storage.local.get(["price_alerts"], (res) => {
+              renderAlertsList(res.price_alerts || []);
+            });
+          } else {
+            renderAlertsList([]);
+          }
+          return;
+        }
+        renderAlertsList(alerts);
+      })
+      .catch(() => {
+        if (typeof chrome !== "undefined" && chrome.storage && chrome.storage.local) {
+          chrome.storage.local.get(["price_alerts"], (res) => {
+            renderAlertsList(res.price_alerts || []);
+          });
+        } else {
+          renderAlertsList([]);
+        }
+      });
+  }
+
+  function renderAlertsList(alerts) {
+    if (alertsCounterEl) alertsCounterEl.innerText = alerts ? alerts.length : 0;
+    if (!priceAlertsListEl) return;
+
+    if (!alerts || alerts.length === 0) {
+      priceAlertsListEl.innerHTML = '<div class="loading-text" style="padding: 8px 0;">No active price alerts set.</div>';
+      return;
+    }
+
+    priceAlertsListEl.innerHTML = alerts.map((al, idx) => {
+      const title = (al.product_title || "Tracked Product").slice(0, 32);
+      const target = al.target_price ? `₹${parseFloat(al.target_price).toLocaleString("en-IN")}` : "Target Set";
+      const store = al.store || "Store";
+
+      return `
+        <div class="coupon-row" style="background: rgba(16, 185, 129, 0.08); border-color: rgba(16, 185, 129, 0.3);">
+          <div style="flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+            <div style="font-size: 11px; font-weight: 600; color: #F8FAFC;">${escapeHtml(title)}</div>
+            <div style="font-size: 10px; color: #34D399;">Target: <strong>${target}</strong> | <span style="color: #94A3B8;">${escapeHtml(store)}</span></div>
+          </div>
+          <button class="delete-alert-btn" data-index="${idx}" style="background: transparent; border: none; color: #F87171; cursor: pointer; font-size: 12px; padding: 2px 4px;">✕</button>
+        </div>
+      `;
+    }).join("");
+
+    priceAlertsListEl.querySelectorAll(".delete-alert-btn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const idx = parseInt(btn.getAttribute("data-index"), 10);
+        // Delete from backend
+        fetch(`${BACKEND_URL}/shopping/extension/alert/${idx}`, { method: "DELETE" }).catch(() => {});
+        // Delete from local storage
+        if (typeof chrome !== "undefined" && chrome.storage && chrome.storage.local) {
+          chrome.storage.local.get(["price_alerts"], (res) => {
+            const list = res.price_alerts || [];
+            if (idx >= 0 && idx < list.length) {
+              list.splice(idx, 1);
+              chrome.storage.local.set({ price_alerts: list }, () => {
+                loadPriceAlerts();
+              });
+            }
+          });
+        }
+      });
+    });
+  }
+
+  // 6. Load Webhooks Config
   function loadWebhooks() {
     fetch(`${BACKEND_URL}/settings/webhooks`, { signal: AbortSignal.timeout(3000) })
       .then(r => r.json())
