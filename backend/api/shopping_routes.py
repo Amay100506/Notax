@@ -57,6 +57,16 @@ class ExtensionTrackRequest(BaseModel):
     sku: Optional[str] = None
 
 
+class PriceAlertRequest(BaseModel):
+    """Payload to create a target price drop alert."""
+    product_title: str
+    target_price: float
+    current_price: float
+    currency: str = "INR"
+    store: str = "Amazon"
+    url: Optional[str] = None
+
+
 # ============================================================================
 # Endpoints
 # ============================================================================
@@ -267,3 +277,30 @@ def extension_get_coupons(store_name: str):
     except Exception as e:
         logger.error("Failed to fetch extension coupons: %s", str(e), exc_info=True)
         raise HTTPException(status_code=500, detail="Failed to fetch coupons")
+
+
+@router.post("/extension/alert")
+def create_price_alert(req: PriceAlertRequest):
+    """Saves a user price drop alert target in SQLite settings."""
+    try:
+        repo = shopping_service.repo
+        alerts_json = repo.get_setting("user_price_alerts") or "[]"
+        import json
+        from datetime import datetime, timezone
+        alerts = json.loads(alerts_json)
+        alerts.append({
+            "product_title": req.product_title,
+            "target_price": req.target_price,
+            "current_price": req.current_price,
+            "currency": req.currency,
+            "store": req.store,
+            "url": req.url,
+            "created_at": datetime.now(timezone.utc).isoformat()
+        })
+        repo.set_setting("user_price_alerts", json.dumps(alerts))
+        logger.info("Created price alert for %s at target %f", req.product_title, req.target_price)
+        return {"status": "alert_created", "target_price": req.target_price, "product_title": req.product_title}
+    except Exception as e:
+        logger.error("Failed to create price alert: %s", str(e))
+        raise HTTPException(status_code=500, detail="Failed to save price alert")
+

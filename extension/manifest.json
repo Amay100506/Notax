@@ -37,7 +37,9 @@
   ],
   "permissions": [
     "storage",
-    "activeTab"
+    "activeTab",
+    "notifications",
+    "alarms"
   ],
   "host_permissions": [
     "*://*.amazon.in/*",

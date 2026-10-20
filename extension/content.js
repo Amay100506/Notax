@@ -193,9 +193,24 @@
             </div>
           ` : ""}
 
-          <button class="notifyiq-btn-primary" id="notifyiq-track-btn">
-            🔔 Set Target Price Drop Alert
-          </button>
+          <div id="notifyiq-alert-card" style="margin-top: 14px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); border-radius: 10px; padding: 12px;">
+            <div style="font-size: 12px; font-weight: 700; color: #F8FAFC; margin-bottom: 4px;">
+              🔔 Set Target Price Drop Alert
+            </div>
+            <div style="font-size: 11px; color: #94A3B8; margin-bottom: 8px;">
+              Get notified immediately via browser & mobile push alert when this price drops.
+            </div>
+            <div style="display: flex; gap: 8px; align-items: center;">
+              <span style="font-size: 14px; font-weight: 700; color: #10B981;">₹</span>
+              <input id="notifyiq-target-price-input" type="number" value="${Math.max(1, Math.round(data.current_price * 0.9))}" style="width: 100px; background: #0F172A; border: 1px solid #475569; color: #F8FAFC; border-radius: 6px; padding: 6px 8px; font-size: 13px; font-weight: 700;">
+              <button class="notifyiq-btn-primary" id="notifyiq-save-alert-btn" style="flex: 1; padding: 6px 12px; font-size: 12px; margin-top: 0;">
+                Save Alert
+              </button>
+            </div>
+            <div id="notifyiq-alert-success" style="display: none; margin-top: 8px; font-size: 11px; color: #10B981; font-weight: 600;">
+              ✅ Alert active! You will be notified when price drops.
+            </div>
+          </div>
         </div>
       </div>
     `;
@@ -206,7 +221,9 @@
     const pill = widget.querySelector("#notifyiq-floating-pill");
     const modal = widget.querySelector("#notifyiq-overlay-modal");
     const closeBtn = widget.querySelector("#notifyiq-close-btn");
-    const trackBtn = widget.querySelector("#notifyiq-track-btn");
+    const saveAlertBtn = widget.querySelector("#notifyiq-save-alert-btn");
+    const targetInput = widget.querySelector("#notifyiq-target-price-input");
+    const alertSuccess = widget.querySelector("#notifyiq-alert-success");
 
     pill.addEventListener("click", () => {
       modal.style.display = modal.style.display === "none" ? "flex" : "none";
@@ -217,14 +234,49 @@
       modal.style.display = "none";
     });
 
-    if (trackBtn) {
-      trackBtn.addEventListener("click", () => {
-        trackBtn.innerText = "✅ Target Alert Created!";
-        trackBtn.style.background = "#10B981";
-        setTimeout(() => {
-          trackBtn.innerText = "🔔 Set Target Price Drop Alert";
-          trackBtn.style.background = "#4F46E5";
-        }, 3000);
+    if (saveAlertBtn && targetInput) {
+      saveAlertBtn.addEventListener("click", () => {
+        const targetVal = parseFloat(targetInput.value);
+        if (!targetVal || targetVal <= 0) {
+          alert("Please enter a valid target price");
+          return;
+        }
+
+        const alertPayload = {
+          product_title: data.product_title || document.title,
+          target_price: targetVal,
+          current_price: data.current_price,
+          currency: "INR",
+          store: getStoreName(),
+          url: window.location.href,
+        };
+
+        // Request browser notification permission
+        if (typeof Notification !== "undefined" && Notification.permission === "default") {
+          Notification.requestPermission();
+        }
+
+        // Send to extension background service worker
+        if (typeof chrome !== "undefined" && chrome.runtime && chrome.runtime.sendMessage) {
+          chrome.runtime.sendMessage({
+            type: "CREATE_PRICE_ALERT",
+            payload: alertPayload,
+          });
+        }
+
+        // Post to NotifyIQ backend
+        fetch(`${BACKEND_URL}/shopping/extension/alert`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(alertPayload),
+        }).catch(() => {});
+
+        saveAlertBtn.innerText = "Saved!";
+        saveAlertBtn.style.background = "#10B981";
+        if (alertSuccess) {
+          alertSuccess.style.display = "block";
+          alertSuccess.innerText = `✅ Alert active! You will be notified as soon as price drops below ₹${targetVal.toLocaleString('en-IN')}.`;
+        }
       });
     }
 
